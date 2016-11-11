@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="DmBaseIntfPackage"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Dmitry Muza &lt;dmitry.muza@gmail.com>"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="src\main\base"/>
+        <OtherUnitFiles Value="src\main\base"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Description Value="Base interfaces and units"/>
+    <Version Major="1"/>
+    <Files Count="10">
+      <Item1>
+        <Filename Value="src\main\base\baseoptions.inc"/>
+        <Type Value="Include"/>
+      </Item1>
+      <Item2>
+        <Filename Value="src\main\base\ubaseentry.pas"/>
+        <UnitName Value="uBaseEntry"/>
+      </Item2>
+      <Item3>
+        <Filename Value="src\main\base\ubaseinterface.pas"/>
+        <UnitName Value="uBaseInterface"/>
+      </Item3>
+      <Item4>
+        <Filename Value="src\main\base\ubaselist.pas"/>
+        <UnitName Value="uBaseList"/>
+      </Item4>
+      <Item5>
+        <Filename Value="src\main\base\ubaselisthelper.pas"/>
+        <UnitName Value="uBaseListHelper"/>
+      </Item5>
+      <Item6>
+        <Filename Value="src\main\base\ubasemap.pas"/>
+        <UnitName Value="uBaseMap"/>
+      </Item6>
+      <Item7>
+        <Filename Value="src\main\base\ubasemaputils.pas"/>
+        <UnitName Value="uBaseMapUtils"/>
+      </Item7>
+      <Item8>
+        <Filename Value="src\main\base\ubaseobserver.pas"/>
+        <UnitName Value="uBaseObserver"/>
+      </Item8>
+      <Item9>
+        <Filename Value="src\main\base\ubaseset.pas"/>
+        <UnitName Value="uBaseSet"/>
+      </Item9>
+      <Item10>
+        <Filename Value="src\main\base\ubasevalue.pas"/>
+        <UnitName Value="uBaseValue"/>
+      </Item10>
+    </Files>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="DmBasePackage"/>
+        <MaxVersion Major="1"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="DmBasePackage"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Dmitry Muza &lt;dmitry.muza@gmail.com>"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="src\main"/>
+        <OtherUnitFiles Value="src\main"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+        </SyntaxOptions>
+      </Parsing>
+    </CompilerOptions>
+    <Description Value="Root package for DMBase"/>
+    <Version Major="1"/>
+    <Files Count="5">
+      <Item1>
+        <Filename Value="src\main\ubaseapputils.pas"/>
+        <UnitName Value="uBaseAppUtils"/>
+      </Item1>
+      <Item2>
+        <Filename Value="src\main\ubaseconsts.pas"/>
+        <UnitName Value="uBaseConsts"/>
+      </Item2>
+      <Item3>
+        <Filename Value="src\main\ubasethreadpool.pas"/>
+        <UnitName Value="uBaseThreadPool"/>
+      </Item3>
+      <Item4>
+        <Filename Value="src\main\utimers.pas"/>
+        <UnitName Value="utimers"/>
+      </Item4>
+      <Item5>
+        <Filename Value="src\main\uvariantutils.pas"/>
+        <UnitName Value="uVariantUtils"/>
+      </Item5>
+    </Files>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="DmBaseNNetWork"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Dmitry Muza &lt;dmitry.muza@gmail.com>"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="src\main\neuron"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+        </SyntaxOptions>
+      </Parsing>
+    </CompilerOptions>
+    <Description Value="implementation of simple three-layer backpropagation network"/>
+    <Version Major="1"/>
+    <Files Count="4">
+      <Item1>
+        <Filename Value="src\main\neuron\fuzzyutils.pas"/>
+        <UnitName Value="FuzzyUtils"/>
+      </Item1>
+      <Item2>
+        <Filename Value="src\main\neuron\nnwork.pas"/>
+        <UnitName Value="NNWork"/>
+      </Item2>
+      <Item3>
+        <Filename Value="src\main\neuron\nnworkutils.pas"/>
+        <UnitName Value="NNWorkUtils"/>
+      </Item3>
+      <Item4>
+        <Filename Value="src\main\neuron\nnworktypes.pas"/>
+        <UnitName Value="nnworktypes"/>
+      </Item4>
+    </Files>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="DmBasePackage"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
