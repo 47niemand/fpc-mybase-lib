@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Forms, SysUtils, fpcunit, testutils, testregistry,
-  NNWork, NNWorkUtils, utimers, NNWorkTypes, FuzzyUtils;
+  NNWork, NNWorkUtils, utimers, NNWorkTypes, FuzzyUtils, NNWorkStrategyThread;
 
 type
 
@@ -103,6 +103,7 @@ begin
   w := Tnnwork.Create(2, 3, 2);
   try
     //  w.SaveAsCode('d:\net.txt');
+    w.TrainStrategy := TNNWorkTrainMultiThraed;
 
     SetLength(I, w.InputSize);
     SetLength(o, w.OutputSize);
@@ -137,7 +138,7 @@ begin
 
 
     C := timer_GetTick;
-    w.TrainT(I, o, 0.001, 0.01);
+    w.Train(I, o, 0.001, 0.01);
     Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
 
   finally
@@ -146,6 +147,112 @@ begin
 
 end;
 
+//procedure TTestCaseNeuronBasics.TestNNWork_SRATEGY;
+//var
+//  w: Tnnwork;
+//  C: int64;
+//  I, o: TVarArrayOfDType;
+//  K: integer;
+//begin
+//  RandSeed := 0;
+//  w := Tnnwork.Create(2, 3, 2);
+//  try
+//    //  w.SaveAsCode('d:\net.txt');
+
+//    SetLength(I, w.InputSize);
+//    SetLength(o, w.OutputSize);
+
+//    I[0] := 0.1;
+//    I[1] := 0.9;
+//    o[0] := 0.9;
+//    o[1] := 0.1;
+
+
+//    with w do
+//    begin
+//      hiddennodes.nodes[0].output := 0;
+//      hiddennodes.nodes[0].weights[0] := 0.499999999767169;
+//      hiddennodes.nodes[0].weights[1] := 0.468620060477406;
+//      hiddennodes.nodes[1].output := 0;
+//      hiddennodes.nodes[1].weights[0] := -0.361048467224464;
+//      hiddennodes.nodes[1].weights[1] := 0.297419034875929;
+//      hiddennodes.nodes[2].output := 0;
+//      hiddennodes.nodes[2].weights[0] := 0.227078732801601;
+//      hiddennodes.nodes[2].weights[1] := -0.171654418576509;
+//      outputnodes.nodes[0].output := 0;
+//      outputnodes.nodes[0].weights[0] := 0.181308728875592;
+//      outputnodes.nodes[0].weights[1] := 0.338204534724355;
+//      outputnodes.nodes[0].weights[2] := 0.127761641284451;
+//      outputnodes.nodes[1].output := 0;
+//      outputnodes.nodes[1].weights[0] := 0.0743262325413525;
+//      outputnodes.nodes[1].weights[1] := 0.417987840482965;
+//      outputnodes.nodes[1].weights[2] := 0.0252059353515506;
+
+//    end;
+
+
+//    C := timer_GetTick;
+//    W.Train(I, o, 0.001, 0.01);
+//    Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
+
+//  finally
+//    w.Free;
+//  end;
+//end;
+
+//procedure TTestCaseNeuronBasics.TestNNWork_SRATEGY2;
+//var
+//  w: Tnnwork;
+//  C: int64;
+//  I, o: TVarArrayOfDType;
+//  K: integer;
+//begin
+//  RandSeed := 0;
+//  w := Tnnwork.Create(2, 3, 2);
+//  try
+//    //  w.SaveAsCode('d:\net.txt');
+//    w.TrainStrategy := TNNWorkTrainMultiThraed;
+
+//    SetLength(I, w.InputSize);
+//    SetLength(o, w.OutputSize);
+
+//    I[0] := 0.1;
+//    I[1] := 0.9;
+//    o[0] := 0.9;
+//    o[1] := 0.1;
+
+
+//    with w do
+//    begin
+//      hiddennodes.nodes[0].output := 0;
+//      hiddennodes.nodes[0].weights[0] := 0.499999999767169;
+//      hiddennodes.nodes[0].weights[1] := 0.468620060477406;
+//      hiddennodes.nodes[1].output := 0;
+//      hiddennodes.nodes[1].weights[0] := -0.361048467224464;
+//      hiddennodes.nodes[1].weights[1] := 0.297419034875929;
+//      hiddennodes.nodes[2].output := 0;
+//      hiddennodes.nodes[2].weights[0] := 0.227078732801601;
+//      hiddennodes.nodes[2].weights[1] := -0.171654418576509;
+//      outputnodes.nodes[0].output := 0;
+//      outputnodes.nodes[0].weights[0] := 0.181308728875592;
+//      outputnodes.nodes[0].weights[1] := 0.338204534724355;
+//      outputnodes.nodes[0].weights[2] := 0.127761641284451;
+//      outputnodes.nodes[1].output := 0;
+//      outputnodes.nodes[1].weights[0] := 0.0743262325413525;
+//      outputnodes.nodes[1].weights[1] := 0.417987840482965;
+//      outputnodes.nodes[1].weights[2] := 0.0252059353515506;
+
+//    end;
+
+
+//    C := timer_GetTick;
+//    W.Train(I, o, 0.001, 0.01);
+//    Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
+
+//  finally
+//    w.Free;
+//  end;
+//end;
 
 procedure TTestCaseNeuronBasics.TestNNWork_LARGE;
 var
@@ -184,6 +291,7 @@ begin
   RandSeed := 0;
   w := Tnnwork.Create(16 * 16, 256, 16 * 16);
   try
+    w.TrainStrategy := TNNWorkTrainMultiThraed;
     SetLength(I, w.InputSize);
     SetLength(o, w.OutputSize);
 
@@ -194,7 +302,7 @@ begin
 
     Writeln('MULTI THREAD');
     C := timer_GetTick;
-    w.TrainT(I, o, 0.001, 0.01);
+    w.Train(I, o, 0.001, 0.01);
     Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
   finally
     w.Free;

@@ -7,15 +7,8 @@ unit DmBasePackage;
 interface
 
 uses
-  uBaseAppUtils, uBaseConsts, uBaseThreadPool, utimers, uVariantUtils, 
-  LazarusPackageIntf;
+  uBaseAppUtils, uBaseConsts, uBaseThreadPool, utimers, uVariantUtils;
 
 implementation
 
-procedure Register;
-begin
-end;
-
-initialization
-  RegisterPackage('DmBasePackage', @Register);
 end.

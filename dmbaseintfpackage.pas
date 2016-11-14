@@ -8,14 +8,8 @@ interface
 
 uses
   uBaseEntry, uBaseInterface, uBaseList, uBaseListHelper, uBaseMap, 
-  uBaseMapUtils, uBaseObserver, uBaseSet, uBaseValue, LazarusPackageIntf;
+  uBaseMapUtils, uBaseObserver, uBaseSet, uBaseValue;
 
 implementation
 
-procedure Register;
-begin
-end;
-
-initialization
-  RegisterPackage('DmBaseIntfPackage', @Register);
 end.

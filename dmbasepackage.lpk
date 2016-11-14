@@ -3,7 +3,7 @@
   <Package Version="4">
     <PathDelim Value="\"/>
     <Name Value="DmBasePackage"/>
-    <Type Value="RunAndDesignTime"/>
+    <AddToProjectUsesSection Value="True"/>
     <Author Value="Dmitry Muza &lt;dmitry.muza@gmail.com>"/>
     <CompilerOptions>
       <Version Value="11"/>
@@ -16,6 +16,7 @@
       <Parsing>
         <SyntaxOptions>
           <SyntaxMode Value="Delphi"/>
+          <IncludeAssertionCode Value="True"/>
         </SyntaxOptions>
       </Parsing>
     </CompilerOptions>

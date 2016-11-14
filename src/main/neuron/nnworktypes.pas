@@ -18,6 +18,22 @@ type
   TVarPointerArray = array of pointer;
   PVarPointerArray = ^TVarPointerArray;
 
+  { TNNTrainData }
+
+  TNNTrainData = record
+    Refs: integer;
+    MSE_max: DType;
+    eta: DType;
+    data: PVarArrayOfDType;
+    desired: PVarArrayOfDType;
+    output: PVarArrayOfDType;
+    output_weight_delta: PVarArrayOfDType;
+    hidden_weight_delta: PVarArrayOfDType;
+  end;
+
+  PNNTrainData = ^TNNTrainData;
+  TNNTrainProc = function(const J: integer; const TrainData: PNNTrainData): DType of
+    object;
 
 implementation
 

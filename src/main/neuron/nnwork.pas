@@ -1,35 +1,14 @@
 unit NNWork;
 
+{$mode delphi}
+
 interface
 
-uses NNWorkTypes, NNWorkUtils;
+uses NNWorkTypes, NNLayer, NNNeuron;
 
 type
-  { TNeuron }
-
-  TNeuron = class
-  public
-    weights: array of DType;
-    output: DType;
-    constructor Create(ASize: integer);
-    destructor Destroy; override;
-    function Clone: TNeuron;
-  end;
-
-  { TNNLayer }
-
-  TNNLayer = class
-  protected
-    size: integer;
-    weights: integer;
-  public
-    nodes: array of TNeuron;
-    function GetWeights: integer;
-    constructor Create(const Dimension, NumWeights: integer);
-    // Number of nodes in the layer.
-    destructor Destroy; override;
-    function Clone: TNNLayer;
-  end;
+  TNNWorkTrainStrategy = class;
+  TNNWorkTrainStrategyClass = class of TNNWorkTrainStrategy;
 
   // This class implements a simple three-layer backpropagation network.
 
@@ -44,6 +23,7 @@ type
     FTrainHiddenErrorTerms: integer;
     FTrainHiddenRun: integer;
     FTrainOutPutRun: integer;
+    procedure SetTrainStrategy(AValue: TNNWorkTrainStrategyClass);
   protected
     FInputSize: integer;
     FOutputSize: integer;
@@ -51,13 +31,15 @@ type
     FOutputNodes: TNNLayer;
     FHiddenNodes: TNNLayer;
     FLast_MSE: DType;
+    FTrainStrategy: TNNWorkTrainStrategy;
+  public
+    property Abort: boolean read FAbort;
     function TrainAdjustHidden(const J: integer; const TrainData: PNNTrainData): DType;
     function TrainAdjustOutput(const K: integer; const TrainData: PNNTrainData): DType;
     function TrainHiddenErrorTerms(const J: integer;
       const TrainData: PNNTrainData): DType;
     function TrainHiddenRun(const J: integer; const TrainData: PNNTrainData): DType;
     function TrainOutPutRun(const K: integer; const TrainData: PNNTrainData): DType;
-    function DoTrain(const ATrainData: TNNTrainData): DType;
   public
     property Last_MSE: DType read FLast_MSE;
     property OutputNodes: TNNLayer read FOutputNodes;
@@ -75,31 +57,40 @@ type
     procedure Train(const Data: TVarArrayOfDType; const desired: TVarArrayOfDType;
       const max_MSE, eta: DType);
     // Trian with multi-thread optimizations
-    procedure TrainT(const Data: TVarArrayOfDType; const desired: TVarArrayOfDType;
-      const max_MSE, eta: DType);
     // Run args are input data, output
     procedure Run(const AData: TVarArrayOfDType; var AResult: TVarArrayOfDType);
     // Set Output nerurons
     procedure SetOutput(const desired: TVarArrayOfDType);
     // Run args are input data, output, return MSE between result and output nodes values
     function RunE(const AData: TVarArrayOfDType; var AResult: TVarArrayOfDType): DType;
-    //TODO
     class function Load(const AFileName: string): TNNWork;
     procedure Save(const AFileName: string);
-    function SaveAsCode(const AFileName: string): integer;
-    procedure Abort;
+    procedure Cancel;
     function Clone: TNNWork;
+    property TrainStrategy: TNNWorkTrainStrategyClass write SetTrainStrategy;
+  end;
+
+  { TNNWorkTrainStrategy }
+
+  TNNWorkTrainStrategy = class(TObject)
+  public
+    function DoTrain(const NN: TNNWork; const ATrainData: TNNTrainData): DType;
+      virtual; abstract;
+    class function GetInstance: TNNWorkTrainStrategy; virtual; abstract;
   end;
 
 
 function Sigmoid(const AData: DType): DType;
+
+var
+  DefaultTrainStrategy: TNNWorkTrainStrategyClass = nil;
 
 implementation
 
 { TNNWork }
 
 uses
-  Classes, syncobjs, Math, SysUtils, uVariantUtils;
+  Classes, SysUtils, NNWorkStrategy;
 
 function Sigmoid(const AData: DType): DType;
 begin
@@ -116,79 +107,12 @@ begin
 end;
 
 
-{ TNNLayer }
-
-function TNNLayer.GetWeights: integer;
-begin
-  Result := weights;
-end;
-
-constructor TNNLayer.Create(const Dimension, NumWeights: integer);
-var
-  J, I: integer;
-begin
-  size := Dimension;
-  weights := NumWeights;
-  setlength(nodes, size);
-  for J := 0 to size - 1 do
-  begin
-    nodes[J] := TNeuron.Create(weights);
-    for I := 0 to weights - 1 do
-      nodes[J].weights[I] := 0.5 - random / 1;
-  end;
-end;
-
-destructor TNNLayer.Destroy;
-var
-  I: integer;
-begin
-  for I := 0 to size - 1 do
-    FreeAndNil(nodes[I]);
-  SetLength(nodes, 0);
-  inherited Destroy;
-end;
-
-function TNNLayer.Clone: TNNLayer;
-var
-  J, I: integer;
-begin
-  TObject(Result) := TNNLayer.newinstance;
-  Result.weights := weights;
-  Result.size := size;
-  setlength(Result.nodes, size);
-  for J := 0 to size - 1 do
-    Result.nodes[J] := nodes[J].Clone;
-end;
-
-{ TNeuron }
-
-constructor TNeuron.Create(ASize: integer);
-begin
-  SetLength(weights, ASize);
-end;
-
-destructor TNeuron.Destroy;
-begin
-  SetLength(weights, 0);
-  inherited Destroy;
-end;
-
-function TNeuron.Clone: TNeuron;
-var
-  I: integer;
-begin
-  TObject(Result) := TNeuron.newinstance;
-  SetLEngth(Result.weights, Length(weights));
-  Result.output := output;
-  for I := 0 to Length(weights) - 1 do
-    Result.weights[I] := weights[I];
-end;
-
 { TNNWork }
 
 constructor TNNWork.Create(const AInput, AHidden, AOutput: integer);
 begin
   inherited Create;
+  FTrainStrategy := DefaultTrainStrategy.GetInstance;
   FInputSize := AInput;
   FHiddenSize := AHidden;
   FOutputSize := AOutput;
@@ -217,6 +141,42 @@ begin
     else
       raise Exception.CreateFmt('Warning: no such layer %d', [Ord(ALayer)]);
   end;
+end;
+
+procedure TNNWork.Train(const Data: TVarArrayOfDType; const desired: TVarArrayOfDType;
+  const max_MSE, eta: DType);
+var
+  output, output_weight_delta, hidden_weight_delta: array of DType;
+  MSE_max: DType; // slight speed enhancement
+  TrainData: TNNTrainData;
+begin
+  FAbort := False;
+  MSE_max := max_MSE * 2.0;
+  //  N := 0;
+  if (InputSize = 0) or (HiddenSize = 0) or (OutputSize = 0) then
+    raise Exception.Create('Warning: stupid dimensions. No action taken.');
+  SetLength(output, OutputSize);
+  SetLength(output_weight_delta, OutputSize);
+  SetLength(hidden_weight_delta, HiddenSize);
+  TrainData.Refs := 0;
+  TrainData.Eta := eta;
+  TrainData.MSE_max := MSE_max;
+  TrainData.Data := @Data;
+  TrainData.hidden_weight_delta := @hidden_weight_delta;
+  TrainData.output_weight_delta := @output_weight_delta;
+  TrainData.desired := @desired;
+  TrainData.output := @output;
+  Write(format('Train using strategy %p ', [pointer(FTrainStrategy)]));
+  Writeln(format('%s', [FTrainStrategy.ClassName]));
+  FLast_MSE := FTrainStrategy.DoTrain(Self, TrainData);
+  setlength(output, 0);
+  setlength(output_weight_delta, 0);
+  setlength(hidden_weight_delta, 0);
+  Writeln('TrainAdjustHidden ', FTrainAdjustHidden);
+  Writeln('TrainAdjustOutput ', FTrainAdjustOutput);
+  Writeln('TrainHiddenErrorTerms ', FTrainHiddenErrorTerms);
+  Writeln('TrainHiddenRun ', FTrainHiddenRun);
+  Writeln('TrainOutPutRun ', FTrainOutPutRun);
 end;
 
 class function TNNWork.Load(const AFileName: string): TNNWork;
@@ -259,7 +219,7 @@ begin
 
           if L = NNW_HIDDEN then
           begin
-            if K >= NN.HiddenNodes.weights then
+            if K >= NN.HiddenNodes.GetWeights then
             begin
               K := 0;
               Inc(J);
@@ -279,7 +239,7 @@ begin
 
           if L = NNW_OUTPUT then
           begin
-            if K >= NN.OutputNodes.weights then
+            if K >= NN.OutputNodes.GetWeights then
             begin
               K := 0;
               Inc(J);
@@ -321,14 +281,14 @@ begin
     Writeln(T, '# hidden layer');
     for I := 0 to HiddenSize - 1 do
     begin
-      for J := 0 to HiddenNodes.weights - 1 do
+      for J := 0 to HiddenNodes.GetWeights - 1 do
         Write(T, HiddenNodes.nodes[I].weights[J], ' ');
       writeln(T);
     end;
     Writeln(T, '# output layer');
     for I := 0 to OutputSize - 1 do
     begin
-      for J := 0 to OutputNodes.weights - 1 do
+      for J := 0 to OutputNodes.GetWeights - 1 do
         Write(T, OutputNodes.nodes[I].weights[J], ' ');
       writeln(T);
     end;
@@ -338,37 +298,7 @@ begin
   end;
 end;
 
-function TNNWork.SaveAsCode(const AFileName: string): integer;
-var
-  O: TStringList;
-  I, J: integer;
-begin
-  O := TStringList.Create;
-  O.Add(format('//constructor TYouNNwork.Create;', []));
-  O.Add(format('//hidden_nodes.Free;', []));
-  O.Add(format('//output_nodes.Free;', []));
-  O.Add(format('inherited Create(%d,%d,%d);', [InputSize, HiddenSize, OutputSize]));
-  for I := 0 to HiddenSize - 1 do
-  begin
-    O.Add(format('hidden_nodes.nodes[%d].output:=%g ;',
-      [I, HiddenNodes.nodes[I].output]));
-    for J := 0 to HiddenNodes.weights - 1 do
-      O.Add(format('hidden_nodes.nodes[%d].weights[%d]:=%g;',
-        [I, J, HiddenNodes.nodes[I].weights[J]]));
-  end;
-  for I := 0 to OutputSize - 1 do
-  begin
-    O.Add(format('output_nodes.nodes[%d].output:=%g;',
-      [I, OutputNodes.nodes[I].output]));
-    for J := 0 to OutputNodes.weights - 1 do
-      O.Add(format('output_nodes.nodes[%d].weights[%d]:=%g;',
-        [I, J, OutputNodes.nodes[I].weights[J]]));
-  end;
-  O.SaveToFile(AFileName);
-  O.Free;
-end;
-
-procedure TNNWork.Abort;
+procedure TNNWork.Cancel;
 begin
   FAbort := True;
 end;
@@ -376,6 +306,7 @@ end;
 function TNNWork.Clone: TNNWork;
 begin
   TObject(Result) := TNNWork.newinstance;
+  Result.FTrainStrategy := Self.FTrainStrategy;
   Result.FTrainAdjustHidden := 0;
   Result.FTrainAdjustOutput := 0;
   Result.FTrainHiddenErrorTerms := 0;
@@ -415,7 +346,8 @@ begin
   end;
 end;
 
-function TNNWork.RunE(const AData: TVarArrayOfDType; var AResult: TVarArrayOfDType): DType;
+function TNNWork.RunE(const AData: TVarArrayOfDType;
+  var AResult: TVarArrayOfDType): DType;
 var
   I, J, K: integer;
   r, sum: DType;
@@ -445,12 +377,6 @@ begin
   end;
 end;
 
-
-// Training routine for the network. Uses data as input, compares output with
-// desired output, computes errors, adjusts weights attached to each node,
-// then repeats until the mean squared error at the output is less than
-// max_MSE. The learning rate is eta.
-
 function TNNWork.TrainHiddenRun(const J: integer; const TrainData: PNNTrainData): DType;
 var
   sum: DType;
@@ -479,9 +405,9 @@ begin
     with OutputNodes do
       for J := 0 to HiddenSize - 1 do
         sum := sum + nodes[K].weights[J] * HiddenNodes.nodes[J].output;
-    Output[K] := Sigmoid(sum);
-    delta := Desired[K] - Output[K];
-    Output_weight_delta[K] := delta * (Output[K] * (1 - Output[K]));
+    output[K] := Sigmoid(sum);
+    delta := desired[K] - output[K];
+    output_weight_delta[K] := delta * (output[K] * (1 - output[K]));
     Result := sqr(delta);
   end;
 end;
@@ -490,18 +416,14 @@ function TNNWork.TrainAdjustOutput(const K: integer;
   const TrainData: PNNTrainData): DType;
 var
   J: integer;
-  e: DType;
 begin
   InterLockedIncrement(FTrainAdjustOutput);
   with TrainData^ do
-  begin
-    e := Eta^;
     with OutputNodes do
       for J := 0 to HiddenSize - 1 do
         nodes[K].weights[J] :=
-          nodes[K].weights[J] + e * Output_weight_delta[K] *
+          nodes[K].weights[J] + eta * output_weight_delta[K] *
           HiddenNodes.nodes[J].output;
-  end;
 end;
 
 function TNNWork.TrainHiddenErrorTerms(const J: integer;
@@ -516,250 +438,29 @@ begin
     sum := 0;
     with OutputNodes do
       for K := 0 to OutputSize - 1 do
-        sum := sum + Output_weight_delta[K] * nodes[K].weights[J];
+        sum := sum + output_weight_delta[K] * nodes[K].weights[J];
     with HiddenNodes do
       hidden_weight_delta[J] :=
         sum * nodes[J].output * (1 - nodes[J].output);
   end;
 end;
 
+procedure TNNWork.SetTrainStrategy(AValue: TNNWorkTrainStrategyClass);
+begin
+  FTrainStrategy := AValue.GetInstance;
+end;
+
 function TNNWork.TrainAdjustHidden(const J: integer;
   const TrainData: PNNTrainData): DType;
 var
   I: integer;
-  e: DType;
 begin
   InterLockedIncrement(FTrainAdjustHidden);
   with TrainData^ do
-  begin
-    e := Eta^;
     with HiddenNodes do
       for I := 0 to InputSize - 1 do
         nodes[J].weights[I] :=
-          nodes[J].weights[I] + e * Hidden_weight_delta[J] * Data[I];
-  end;
-end;
-
-function TNNWork.DoTrain(const ATrainData: TNNTrainData): DType;
-var
-  //  output, output_weight_delta, hidden_weight_delta: array of DType;
-  //  MSE, MSE_max: DType; // slight speed enhancement
-  J, K: integer;
-  N: integer;
-  C: cardinal;
-  _MSE_max_: DType; // slight speed enhancement
-  MSE: DType;
-begin
-  N := 0;
-  C := 0;
-  _MSE_max_ := ATrainData.MSE_max^;
-  with ATrainData do
-    while True do
-    begin
-      // run & compute MSE
-      for J := 0 to HiddenSize - 1 do
-      begin
-        Assert(True);
-        TrainHiddenRun(J, @ATrainData);
-      end;
-      MSE := 0;
-      for K := 0 to OutputSize - 1 do
-      begin
-        Assert(True);
-        MSE := MSE + TrainOutPutRun(K, @ATrainData);
-      end;
-
-      N := N + 1;
-      if (GetTickCount - C) > 1000 then
-      begin
-        writeln(format('MSE = %g, N = %d', [MSE, N]));
-        C := GetTickCount;
-      end;
-
-      if (MSE < _MSE_max_) then
-        break;
-      // And the hidden layer error terms
-      for J := 0 to HiddenSize - 1 do
-      begin
-        Assert(True);
-        TrainHiddenErrorTerms(J, @ATrainData);
-      end;
-
-      //adjusts weights
-      for K := 0 to OutputSize - 1 do
-      begin
-        Assert(True);
-        TrainAdjustOutput(K, @ATrainData);
-      end;
-      for J := 0 to HiddenSize - 1 do
-      begin
-        Assert(True);
-        TrainAdjustHidden(J, @ATrainData);
-      end;
-      if FAbort or (_MSE_max_ = 0) then
-        break;
-    end;
-  writeln(format('DONE - MSE = %g, N = %d', [MSE, N]));
-  Result := MSE;
-end;
-
-
-procedure TNNWork.Train(const Data: TVarArrayOfDType; const desired: TVarArrayOfDType;
-  const max_MSE, eta: DType);
-var
-  output, output_weight_delta, hidden_weight_delta: array of DType;
-  {MSE, }MSE_max: DType; // slight speed enhancement
-  //  J, K: integer;
-  //  N: integer;
-  TrainData: TNNTrainData;
-  //  C: cardinal;
-begin
-  FAbort := False;
-  MSE_max := max_MSE * 2.0;
-  //  N := 0;
-  if (InputSize = 0) or (HiddenSize = 0) or (OutputSize = 0) then
-    raise Exception.Create('Warning: stupid dimensions. No action taken.');
-  SetLength(output, OutputSize);
-  SetLength(output_weight_delta, OutputSize);
-  SetLength(hidden_weight_delta, HiddenSize);
-  TrainData.Refs := 0;
-  TrainData.Eta := @eta;
-  TrainData.MSE_max := @MSE_max;
-  TrainData.Data := @Data;
-  TrainData.Hidden_weight_delta := @hidden_weight_delta;
-  TrainData.Output_weight_delta := @output_weight_delta;
-  TrainData.Desired := @desired;
-  TrainData.Output := @output;
-  FLast_MSE := DoTrain(TrainData);
-  setlength(output, 0);
-  setlength(output_weight_delta, 0);
-  setlength(hidden_weight_delta, 0);
-  Writeln('TrainAdjustHidden ', FTrainAdjustHidden);
-  Writeln('TrainAdjustOutput ', FTrainAdjustOutput);
-  Writeln('TrainHiddenErrorTerms ', FTrainHiddenErrorTerms);
-  Writeln('TrainHiddenRun ', FTrainHiddenRun);
-  Writeln('TrainOutPutRun ', FTrainOutPutRun);
-end;
-
-const
-  MAX_USE_CPU_COUNT = 4;
-  HALF_USE_CPU_COUNT = 2;
-
-
-procedure TNNWork.TrainT(const Data: TVarArrayOfDType; const desired: TVarArrayOfDType;
-  const max_MSE, eta: DType);
-
-var
-  output, output_weight_delta, hidden_weight_delta: array of DType;
-  MSE, MSE_max: DType; // slight speed enhancement
-  I, J, K: integer;
-  N: integer;
-  D: TNNTrainData;
-  EA: array[0..4] of TEvent;
-  E: TEvent;
-  P: TVarPointerArray;
-  C: cardinal;
-begin
-  FAbort := False;
-  for I := 0 to High(EA) do
-    EA[I] := TEvent.Create(nil, False, False, '');
-
-  SetLength(P, MAX_USE_CPU_COUNT);
-  MSE_max := max_MSE * 2.0;
-  N := 0;
-  if (InputSize = 0) or (HiddenSize = 0) or (OutputSize = 0) then
-    raise Exception.Create('Warning: stupid dimensions. No action taken.');
-  SetLength(output, OutputSize);
-  SetLength(output_weight_delta, OutputSize);
-  SetLength(hidden_weight_delta, HiddenSize);
-  D.Refs := 0;
-  D.Eta := @eta;
-  D.MSE_max := @MSE_max;
-  D.Data := @Data;
-  D.Hidden_weight_delta := @hidden_weight_delta;
-  D.Output_weight_delta := @output_weight_delta;
-  D.Desired := @desired;
-  D.Output := @output;
-  C := 0;
-  while True do
-  begin
-    // run & compute MSE
-    J := 0;
-    E := EA[0];
-    E.ResetEvent;
-    NNThreadTrain(TrainHiddenRun, @D, J, HiddenSize - 1, E, MAX_USE_CPU_COUNT, nil);
-    repeat
-      if E.WaitFor(INFINITE) <> wrSignaled then
-        raise Exception.Create('process error');
-    until D.Refs = 0;
-
-    MSE := 0.0;
-    K := 0;
-    E := EA[1];
-    E.ResetEvent;
-    NNThreadTrain(TrainOutPutRun, @D, K, OutputSize - 1, E, MAX_USE_CPU_COUNT, @p);
-    repeat
-      if E.WaitFor(INFINITE) <> wrSignaled then
-        raise Exception.Create('process error');
-    until D.Refs = 0;
-
-    for I := 0 to MAX_USE_CPU_COUNT - 1 do
-      MSE := MSE + NNThreadResult(P[I]);
-
-    N := N + 1;
-    if (GetTickCount - C) > 1000 then
-    begin
-      writeln(format('MSE = %g, N = %d', [MSE, N]));
-      C := GetTickCount;
-    end;
-
-    if (MSE < MSE_max) then
-      break;
-    // And the hidden layer error terms
-    J := 0;
-    E := EA[2];
-    E.ResetEvent;
-    NNThreadTrain(TrainHiddenErrorTerms, @D, J, HiddenSize - 1, E,
-      MAX_USE_CPU_COUNT, nil);
-    repeat
-      if E.WaitFor(INFINITE) <> wrSignaled then
-        raise Exception.Create('process error');
-    until D.Refs = 0;
-
-    //adjusts weights
-    K := 0;
-    E := EA[3];
-    E.ResetEvent;
-    NNThreadTrain(TrainAdjustOutput, @D, K, OutputSize - 1, E, MAX_USE_CPU_COUNT, nil);
-    repeat
-      if E.WaitFor(INFINITE) <> wrSignaled then
-        raise Exception.Create('process error');
-    until D.Refs = 0;
-
-    J := 0;
-    E := EA[4];
-    E.ResetEvent;
-    NNThreadTrain(TrainAdjustHidden, @D, J, HiddenSize - 1, E, MAX_USE_CPU_COUNT, nil);
-    repeat
-      if E.WaitFor(INFINITE) <> wrSignaled then
-        raise Exception.Create('process error');
-    until D.Refs = 0;
-
-    if (max_MSE = 0) or (FAbort) then
-      break;
-  end;
-  FLast_MSE := MSE;
-  writeln(format('DONE - MSE = %g, N = %d', [MSE, N]));
-  setlength(output, 0);
-  setlength(output_weight_delta, 0);
-  setlength(hidden_weight_delta, 0);
-  Writeln('TrainAdjustHidden ', FTrainAdjustHidden);
-  Writeln('TrainAdjustOutput ', FTrainAdjustOutput);
-  Writeln('TrainHiddenErrorTerms ', FTrainHiddenErrorTerms);
-  Writeln('TrainHiddenRun ', FTrainHiddenRun);
-  Writeln('TrainOutPutRun ', FTrainOutPutRun);
-  for I := 0 to High(EA) do
-    FreeAndNil(EA[I]);
+          nodes[J].weights[I] + Eta * hidden_weight_delta[J] * Data[I];
 end;
 
 procedure TNNWork.SetOutput(const desired: TVarArrayOfDType);
@@ -774,5 +475,8 @@ begin
     OutputNodes.nodes[K].output := desired[K];
   end;
 end;
+
+initialization
+  DefaultTrainStrategy := TNNWorkTrainStrategyDefault;
 
 end.

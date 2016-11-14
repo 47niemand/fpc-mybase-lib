@@ -3,7 +3,7 @@
   <Package Version="4">
     <PathDelim Value="\"/>
     <Name Value="DmBaseNNetWork"/>
-    <Type Value="RunAndDesignTime"/>
+    <AddToProjectUsesSection Value="True"/>
     <Author Value="Dmitry Muza &lt;dmitry.muza@gmail.com>"/>
     <CompilerOptions>
       <Version Value="11"/>
@@ -15,28 +15,45 @@
       <Parsing>
         <SyntaxOptions>
           <SyntaxMode Value="Delphi"/>
+          <IncludeAssertionCode Value="True"/>
         </SyntaxOptions>
       </Parsing>
     </CompilerOptions>
     <Description Value="implementation of simple three-layer backpropagation network"/>
     <Version Major="1"/>
-    <Files Count="4">
+    <Files Count="8">
       <Item1>
         <Filename Value="src\main\neuron\fuzzyutils.pas"/>
         <UnitName Value="FuzzyUtils"/>
       </Item1>
       <Item2>
-        <Filename Value="src\main\neuron\nnwork.pas"/>
-        <UnitName Value="NNWork"/>
+        <Filename Value="src\main\neuron\nnlayer.pas"/>
+        <UnitName Value="NNLayer"/>
       </Item2>
       <Item3>
-        <Filename Value="src\main\neuron\nnworkutils.pas"/>
-        <UnitName Value="NNWorkUtils"/>
+        <Filename Value="src\main\neuron\nnneuron.pas"/>
+        <UnitName Value="NNNeuron"/>
       </Item3>
       <Item4>
-        <Filename Value="src\main\neuron\nnworktypes.pas"/>
-        <UnitName Value="nnworktypes"/>
+        <Filename Value="src\main\neuron\nnwork.pas"/>
+        <UnitName Value="NNWork"/>
       </Item4>
+      <Item5>
+        <Filename Value="src\main\neuron\nnworkstrategy.pas"/>
+        <UnitName Value="NNWorkStrategy"/>
+      </Item5>
+      <Item6>
+        <Filename Value="src\main\neuron\nnworkstrategythread.pas"/>
+        <UnitName Value="NNWorkStrategyThread"/>
+      </Item6>
+      <Item7>
+        <Filename Value="src\main\neuron\nnworktypes.pas"/>
+        <UnitName Value="NNWorkTypes"/>
+      </Item7>
+      <Item8>
+        <Filename Value="src\main\neuron\nnworkutils.pas"/>
+        <UnitName Value="NNWorkUtils"/>
+      </Item8>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

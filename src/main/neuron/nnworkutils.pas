@@ -23,24 +23,7 @@ unit NNWorkUtils;
 interface
 
 uses
-  Classes, SysUtils, NNWorkTypes, syncobjs;
-
-type
-  { TNNTrainData }
-
-  TNNTrainData = record
-    Refs: integer;
-    MSE_max: PDType;
-    eta: PDType;
-    Data: PVarArrayOfDType;
-    desired: PVarArrayOfDType;
-    output: PVarArrayOfDType;
-    output_weight_delta: PVarArrayOfDType;
-    hidden_weight_delta: PVarArrayOfDType;
-  end;
-  PNNTrainData = ^TNNTrainData;
-  TNNTrainProc = function(const J: integer; const TrainData: PNNTrainData): DType of
-    object;
+  Classes, SysUtils, syncobjs, NNWorkTypes;
 
 procedure NNThreadTrain(const AProc: TNNTrainProc; const ATrainData: PNNTrainData;
   var ALoopVariable: integer; const ALimit: integer; var FinishEvent: TEvent;

@@ -8,13 +8,16 @@ uses
   GuiTestRunner,
   fpcunittestrunner,
   lazcontrols,
-  testcasebaseinterface,
-  testcaseforbaseentry,
-  testcaseforbasemap,
-  testcaseforbasemapconcurency,
-  testcaseforbasevalue,
-  testcaseforbvalueconcurency,
-  testcaseforlistsandsets,
+  dmbasepackage,
+  dmbaseintfpackage,
+  dmbasennetwork,
+  TestCaseBaseInterface,
+  TestCaseForBaseEntry,
+  TestCaseForBaseMap,
+  TestCaseForBaseMapConcurency,
+  TestCaseForBaseValue,
+  TestCaseForBvalueconcurency,
+  TestCaseForListsAndSets,
   TestCaseNeuronNet;
 
 {$R *.res}

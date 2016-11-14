@@ -7,14 +7,9 @@ unit DmBaseNNetWork;
 interface
 
 uses
-  FuzzyUtils, NNWork, NNWorkUtils, NNWorkTypes, LazarusPackageIntf;
+  FuzzyUtils, NNLayer, NNNeuron, NNWork, NNWorkStrategy, NNWorkStrategyThread, 
+  NNWorkTypes, NNWorkUtils;
 
 implementation
 
-procedure Register;
-begin
-end;
-
-initialization
-  RegisterPackage('DmBaseNNetWork', @Register);
 end.
