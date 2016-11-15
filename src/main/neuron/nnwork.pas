@@ -216,7 +216,6 @@ begin
         end;
         if N > 3 then
         begin
-
           if L = NNW_HIDDEN then
           begin
             if K >= NN.HiddenNodes.GetWeights then
@@ -236,7 +235,6 @@ begin
               Inc(K);
             end;
           end;
-
           if L = NNW_OUTPUT then
           begin
             if K >= NN.OutputNodes.GetWeights then
@@ -256,7 +254,6 @@ begin
               Inc(K);
             end;
           end;
-
         end;
       except
         Read(T, s);
@@ -416,14 +413,18 @@ function TNNWork.TrainAdjustOutput(const K: integer;
   const TrainData: PNNTrainData): DType;
 var
   J: integer;
+  e: DType;
 begin
   InterLockedIncrement(FTrainAdjustOutput);
   with TrainData^ do
+  begin
+    e := eta;
     with OutputNodes do
       for J := 0 to HiddenSize - 1 do
         nodes[K].weights[J] :=
-          nodes[K].weights[J] + eta * output_weight_delta[K] *
+          nodes[K].weights[J] + e * output_weight_delta[K] *
           HiddenNodes.nodes[J].output;
+  end;
 end;
 
 function TNNWork.TrainHiddenErrorTerms(const J: integer;
@@ -454,13 +455,17 @@ function TNNWork.TrainAdjustHidden(const J: integer;
   const TrainData: PNNTrainData): DType;
 var
   I: integer;
+  e: DType;
 begin
   InterLockedIncrement(FTrainAdjustHidden);
   with TrainData^ do
+  begin
+    e := eta;
     with HiddenNodes do
       for I := 0 to InputSize - 1 do
         nodes[J].weights[I] :=
-          nodes[J].weights[I] + Eta * hidden_weight_delta[J] * Data[I];
+          nodes[J].weights[I] + e * hidden_weight_delta[J] * Data[I];
+  end;
 end;
 
 procedure TNNWork.SetOutput(const desired: TVarArrayOfDType);
