@@ -47,10 +47,10 @@ begin
     begin
       // run & compute MSE
       for J := 0 to HiddenSize - 1 do
-        TrainHiddenRun(J, @ATrainData);
+        RunHidden(J, @ATrainData);
       MSE := 0;
       for K := 0 to OutputSize - 1 do
-        MSE := MSE + TrainOutPutRun(K, @ATrainData);
+        MSE := MSE + RunTrainOutput(K, @ATrainData);
 
       N := N + 1;
       if (GetTickCount - C) > 1000 then

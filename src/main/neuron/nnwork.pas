@@ -21,8 +21,8 @@ type
     FTrainAdjustHidden: integer;
     FTrainAdjustOutput: integer;
     FTrainHiddenErrorTerms: integer;
-    FTrainHiddenRun: integer;
-    FTrainOutPutRun: integer;
+    FRunHidden: integer;
+    FRunTrainOutput: integer;
     procedure SetTrainStrategy(AValue: TNNWorkTrainStrategyClass);
   protected
     FInputSize: integer;
@@ -38,8 +38,8 @@ type
     function TrainAdjustOutput(const K: integer; const TrainData: PNNTrainData): DType;
     function TrainHiddenErrorTerms(const J: integer;
       const TrainData: PNNTrainData): DType;
-    function TrainHiddenRun(const J: integer; const TrainData: PNNTrainData): DType;
-    function TrainOutPutRun(const K: integer; const TrainData: PNNTrainData): DType;
+    function RunHidden(const J: integer; const TrainData: PNNTrainData): DType;
+    function RunTrainOutput(const K: integer; const TrainData: PNNTrainData): DType;
   public
     property Last_MSE: DType read FLast_MSE;
     property OutputNodes: TNNLayer read FOutputNodes;
@@ -175,8 +175,8 @@ begin
   Writeln('TrainAdjustHidden ', FTrainAdjustHidden);
   Writeln('TrainAdjustOutput ', FTrainAdjustOutput);
   Writeln('TrainHiddenErrorTerms ', FTrainHiddenErrorTerms);
-  Writeln('TrainHiddenRun ', FTrainHiddenRun);
-  Writeln('TrainOutPutRun ', FTrainOutPutRun);
+  Writeln('TrainHiddenRun ', FRunHidden);
+  Writeln('TrainOutPutRun ', FRunTrainOutput);
 end;
 
 class function TNNWork.Load(const AFileName: string): TNNWork;
@@ -307,8 +307,8 @@ begin
   Result.FTrainAdjustHidden := 0;
   Result.FTrainAdjustOutput := 0;
   Result.FTrainHiddenErrorTerms := 0;
-  Result.FTrainHiddenRun := 0;
-  Result.FTrainOutPutRun := 0;
+  Result.FRunHidden := 0;
+  Result.FRunTrainOutput := 0;
   Result.FOutputSize := OutputSize;
   Result.FHiddenSize := HiddenSize;
   Result.FInputSize := InputSize;
@@ -349,7 +349,6 @@ var
   I, J, K: integer;
   r, sum: DType;
 begin
-  Result := 0.0;
   if (InputSize = 0) or (HiddenSize = 0) or (OutputSize = 0) then
     raise Exception.Create('Warning: stupid dimensions. No action taken.');
   if Length(AData) < InputSize then
@@ -363,6 +362,7 @@ begin
       sum := sum + HiddenNodes.nodes[J].weights[I] * AData[I];
     HiddenNodes.nodes[J].output := Sigmoid(sum);
   end;
+  Result := 0.0;
   for K := 0 to OutputSize - 1 do
   begin
     sum := 0;
@@ -374,12 +374,13 @@ begin
   end;
 end;
 
-function TNNWork.TrainHiddenRun(const J: integer; const TrainData: PNNTrainData): DType;
+function TNNWork.RunHidden(const J: integer; const TrainData: PNNTrainData): DType;
 var
   sum: DType;
   I: integer;
 begin
-  InterLockedIncrement(FTrainHiddenRun);
+  Result := 0.0;
+  InterLockedIncrement(FRunHidden);
   with TrainData^ do
   begin
     sum := 0;
@@ -390,12 +391,12 @@ begin
   end;
 end;
 
-function TNNWork.TrainOutPutRun(const K: integer; const TrainData: PNNTrainData): DType;
+function TNNWork.RunTrainOutput(const K: integer; const TrainData: PNNTrainData): DType;
 var
   delta, sum: DType;
   J: integer;
 begin
-  InterLockedIncrement(FTrainOutPutRun);
+  InterLockedIncrement(FRunTrainOutput);
   with TrainData^ do
   begin
     sum := 0;
@@ -409,12 +410,14 @@ begin
   end;
 end;
 
+
 function TNNWork.TrainAdjustOutput(const K: integer;
   const TrainData: PNNTrainData): DType;
 var
   J: integer;
   e: DType;
 begin
+  Result := 0.0;
   InterLockedIncrement(FTrainAdjustOutput);
   with TrainData^ do
   begin
@@ -433,6 +436,7 @@ var
   K: integer;
   sum: DType;
 begin
+  Result := 0.0;
   InterLockedIncrement(FTrainHiddenErrorTerms);
   with TrainData^ do
   begin
@@ -457,6 +461,7 @@ var
   I: integer;
   e: DType;
 begin
+  Result := 0.0;
   InterLockedIncrement(FTrainAdjustHidden);
   with TrainData^ do
   begin

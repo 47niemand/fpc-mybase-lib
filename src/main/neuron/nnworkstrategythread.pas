@@ -63,7 +63,7 @@ begin
       J := 0;
       E := EA[0];
       E.ResetEvent;
-      NNThreadTrain(TrainHiddenRun, @ATrainData, J, HiddenSize - 1, E,
+      NNThreadTrain(RunHidden, @ATrainData, J, HiddenSize - 1, E,
         MAX_USE_CPU_COUNT, nil);
       repeat
         if E.WaitFor(INFINITE) <> wrSignaled then
@@ -74,7 +74,7 @@ begin
       K := 0;
       E := EA[1];
       E.ResetEvent;
-      NNThreadTrain(TrainOutPutRun, @ATrainData, K, OutputSize - 1, E,
+      NNThreadTrain(RunTrainOutput, @ATrainData, K, OutputSize - 1, E,
         MAX_USE_CPU_COUNT, @p);
       repeat
         if E.WaitFor(INFINITE) <> wrSignaled then

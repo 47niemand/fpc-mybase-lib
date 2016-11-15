@@ -24,7 +24,7 @@ type
     Refs: integer;
     MSE_max: DType;
     eta: DType;
-    data: PVarArrayOfDType;
+    Data: PVarArrayOfDType;
     desired: PVarArrayOfDType;
     output: PVarArrayOfDType;
     output_weight_delta: PVarArrayOfDType;
