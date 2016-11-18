@@ -8,9 +8,10 @@ uses
   GuiTestRunner,
   fpcunittestrunner,
   lazcontrols,
-  dmbasepackage,
-  dmbaseintfpackage,
-  dmbasennetwork,
+  DmBasePackage,
+  DmBaseIntfPackage,
+  DmBaseNNetwork,
+  DmBaseGraphics,
   TestCaseBaseInterface,
   TestCaseForBaseEntry,
   TestCaseForBaseMap,
@@ -18,7 +19,8 @@ uses
   TestCaseForBaseValue,
   TestCaseForBvalueconcurency,
   TestCaseForListsAndSets,
-  TestCaseNeuronNet;
+  TestCaseNeuronNet,
+  TestCaseBaseBitmap;
 
 {$R *.res}
 

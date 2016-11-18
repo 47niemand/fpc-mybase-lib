@@ -26,6 +26,8 @@ implementation
 
 
 const
+  www0: array[0..1, 0..1] of double = ((0.1, 0.9), (0.9, 0.1));
+
   www1: array[0..2, 0..1] of double =
     ((0.499999999767169, 0.468620060477406), (-0.361048467224464,
     0.297419034875929), (
@@ -35,7 +37,8 @@ const
     ((0.181308728875592, 0.338204534724355, 0.127761641284451),
     (0.0743262325413525, 0.417987840482965, 0.0252059353515506));
 
-
+  max_MSE = 0.001;
+  ETA = 0.01;
 
 
 procedure TTestCaseNeuronBasics.TestNNWork_BASIC;
@@ -53,38 +56,37 @@ begin
     SetLength(I, w.InputSize);
     SetLength(o, w.OutputSize);
 
-    I[0] := 0.1;
-    I[1] := 0.9;
-    o[0] := 0.9;
-    o[1] := 0.1;
-
+    I[0] := www0[0][0];
+    I[1] := www0[0][1];
+    o[0] := www0[1][0];
+    o[1] := www0[1][1];
 
     with w do
     begin
       hiddennodes.nodes[0].output := 0;
-      hiddennodes.nodes[0].weights[0] := 0.499999999767169;
-      hiddennodes.nodes[0].weights[1] := 0.468620060477406;
+      hiddennodes.nodes[0].weights[0] := www1[0][0]; //0.499999999767169;
+      hiddennodes.nodes[0].weights[1] := www1[0][1]; // 0.468620060477406;
       hiddennodes.nodes[1].output := 0;
-      hiddennodes.nodes[1].weights[0] := -0.361048467224464;
-      hiddennodes.nodes[1].weights[1] := 0.297419034875929;
+      hiddennodes.nodes[1].weights[0] := www1[1][0]; //-0.361048467224464;
+      hiddennodes.nodes[1].weights[1] := www1[1][1]; //0.297419034875929;
       hiddennodes.nodes[2].output := 0;
-      hiddennodes.nodes[2].weights[0] := 0.227078732801601;
-      hiddennodes.nodes[2].weights[1] := -0.171654418576509;
+      hiddennodes.nodes[2].weights[0] := www1[2][0]; //0.227078732801601;
+      hiddennodes.nodes[2].weights[1] := www1[2][1]; //-0.171654418576509;
       outputnodes.nodes[0].output := 0;
-      outputnodes.nodes[0].weights[0] := 0.181308728875592;
-      outputnodes.nodes[0].weights[1] := 0.338204534724355;
-      outputnodes.nodes[0].weights[2] := 0.127761641284451;
+      outputnodes.nodes[0].weights[0] := www2[0][0]; //0.181308728875592;
+      outputnodes.nodes[0].weights[1] := www2[0][1]; //0.338204534724355;
+      outputnodes.nodes[0].weights[2] := www2[0][2]; //0.127761641284451;
       outputnodes.nodes[1].output := 0;
-      outputnodes.nodes[1].weights[0] := 0.0743262325413525;
-      outputnodes.nodes[1].weights[1] := 0.417987840482965;
-      outputnodes.nodes[1].weights[2] := 0.0252059353515506;
-
+      outputnodes.nodes[1].weights[0] := www2[1][0]; //0.0743262325413525;
+      outputnodes.nodes[1].weights[1] := www2[1][1]; //0.417987840482965;
+      outputnodes.nodes[1].weights[2] := www2[1][2]; //0.0252059353515506;
     end;
 
-
     C := timer_GetTick;
-    W.Train(I, o, 0.001, 0.01);
+    W.Train(I, o, max_MSE, ETA);
     Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
+    AssertEquals(0.0019995317638584827, w.Last_MSE, 1e-8);
+    AssertEquals(8009, w.Last_Train_Cycles);
 
   finally
     w.Free;
@@ -102,157 +104,46 @@ begin
   RandSeed := 0;
   w := Tnnwork.Create(2, 3, 2);
   try
-    //  w.SaveAsCode('d:\net.txt');
     w.TrainStrategy := TNNWorkTrainMultiThraed;
 
     SetLength(I, w.InputSize);
     SetLength(o, w.OutputSize);
 
-    I[0] := 0.1;
-    I[1] := 0.9;
-    o[0] := 0.9;
-    o[1] := 0.1;
-
+    I[0] := www0[0][0];
+    I[1] := www0[0][1];
+    o[0] := www0[1][0];
+    o[1] := www0[1][1];
 
     with w do
     begin
       hiddennodes.nodes[0].output := 0;
-      hiddennodes.nodes[0].weights[0] := 0.499999999767169;
-      hiddennodes.nodes[0].weights[1] := 0.468620060477406;
+      hiddennodes.nodes[0].weights[0] := www1[0][0]; //0.499999999767169;
+      hiddennodes.nodes[0].weights[1] := www1[0][1]; // 0.468620060477406;
       hiddennodes.nodes[1].output := 0;
-      hiddennodes.nodes[1].weights[0] := -0.361048467224464;
-      hiddennodes.nodes[1].weights[1] := 0.297419034875929;
+      hiddennodes.nodes[1].weights[0] := www1[1][0]; //-0.361048467224464;
+      hiddennodes.nodes[1].weights[1] := www1[1][1]; //0.297419034875929;
       hiddennodes.nodes[2].output := 0;
-      hiddennodes.nodes[2].weights[0] := 0.227078732801601;
-      hiddennodes.nodes[2].weights[1] := -0.171654418576509;
+      hiddennodes.nodes[2].weights[0] := www1[2][0]; //0.227078732801601;
+      hiddennodes.nodes[2].weights[1] := www1[2][1]; //-0.171654418576509;
       outputnodes.nodes[0].output := 0;
-      outputnodes.nodes[0].weights[0] := 0.181308728875592;
-      outputnodes.nodes[0].weights[1] := 0.338204534724355;
-      outputnodes.nodes[0].weights[2] := 0.127761641284451;
+      outputnodes.nodes[0].weights[0] := www2[0][0]; //0.181308728875592;
+      outputnodes.nodes[0].weights[1] := www2[0][1]; //0.338204534724355;
+      outputnodes.nodes[0].weights[2] := www2[0][2]; //0.127761641284451;
       outputnodes.nodes[1].output := 0;
-      outputnodes.nodes[1].weights[0] := 0.0743262325413525;
-      outputnodes.nodes[1].weights[1] := 0.417987840482965;
-      outputnodes.nodes[1].weights[2] := 0.0252059353515506;
-
+      outputnodes.nodes[1].weights[0] := www2[1][0]; //0.0743262325413525;
+      outputnodes.nodes[1].weights[1] := www2[1][1]; //0.417987840482965;
+      outputnodes.nodes[1].weights[2] := www2[1][2]; //0.0252059353515506;
     end;
 
-
     C := timer_GetTick;
-    w.Train(I, o, 0.001, 0.01);
+    W.Train(I, o, max_MSE, ETA);
     Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
-
+    AssertEquals(0.0019995317638584827, w.Last_MSE, 1e-8);
+    AssertEquals(8009, w.Last_Train_Cycles);
   finally
     w.Free;
   end;
-
 end;
-
-//procedure TTestCaseNeuronBasics.TestNNWork_SRATEGY;
-//var
-//  w: Tnnwork;
-//  C: int64;
-//  I, o: TVarArrayOfDType;
-//  K: integer;
-//begin
-//  RandSeed := 0;
-//  w := Tnnwork.Create(2, 3, 2);
-//  try
-//    //  w.SaveAsCode('d:\net.txt');
-
-//    SetLength(I, w.InputSize);
-//    SetLength(o, w.OutputSize);
-
-//    I[0] := 0.1;
-//    I[1] := 0.9;
-//    o[0] := 0.9;
-//    o[1] := 0.1;
-
-
-//    with w do
-//    begin
-//      hiddennodes.nodes[0].output := 0;
-//      hiddennodes.nodes[0].weights[0] := 0.499999999767169;
-//      hiddennodes.nodes[0].weights[1] := 0.468620060477406;
-//      hiddennodes.nodes[1].output := 0;
-//      hiddennodes.nodes[1].weights[0] := -0.361048467224464;
-//      hiddennodes.nodes[1].weights[1] := 0.297419034875929;
-//      hiddennodes.nodes[2].output := 0;
-//      hiddennodes.nodes[2].weights[0] := 0.227078732801601;
-//      hiddennodes.nodes[2].weights[1] := -0.171654418576509;
-//      outputnodes.nodes[0].output := 0;
-//      outputnodes.nodes[0].weights[0] := 0.181308728875592;
-//      outputnodes.nodes[0].weights[1] := 0.338204534724355;
-//      outputnodes.nodes[0].weights[2] := 0.127761641284451;
-//      outputnodes.nodes[1].output := 0;
-//      outputnodes.nodes[1].weights[0] := 0.0743262325413525;
-//      outputnodes.nodes[1].weights[1] := 0.417987840482965;
-//      outputnodes.nodes[1].weights[2] := 0.0252059353515506;
-
-//    end;
-
-
-//    C := timer_GetTick;
-//    W.Train(I, o, 0.001, 0.01);
-//    Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
-
-//  finally
-//    w.Free;
-//  end;
-//end;
-
-//procedure TTestCaseNeuronBasics.TestNNWork_SRATEGY2;
-//var
-//  w: Tnnwork;
-//  C: int64;
-//  I, o: TVarArrayOfDType;
-//  K: integer;
-//begin
-//  RandSeed := 0;
-//  w := Tnnwork.Create(2, 3, 2);
-//  try
-//    //  w.SaveAsCode('d:\net.txt');
-//    w.TrainStrategy := TNNWorkTrainMultiThraed;
-
-//    SetLength(I, w.InputSize);
-//    SetLength(o, w.OutputSize);
-
-//    I[0] := 0.1;
-//    I[1] := 0.9;
-//    o[0] := 0.9;
-//    o[1] := 0.1;
-
-
-//    with w do
-//    begin
-//      hiddennodes.nodes[0].output := 0;
-//      hiddennodes.nodes[0].weights[0] := 0.499999999767169;
-//      hiddennodes.nodes[0].weights[1] := 0.468620060477406;
-//      hiddennodes.nodes[1].output := 0;
-//      hiddennodes.nodes[1].weights[0] := -0.361048467224464;
-//      hiddennodes.nodes[1].weights[1] := 0.297419034875929;
-//      hiddennodes.nodes[2].output := 0;
-//      hiddennodes.nodes[2].weights[0] := 0.227078732801601;
-//      hiddennodes.nodes[2].weights[1] := -0.171654418576509;
-//      outputnodes.nodes[0].output := 0;
-//      outputnodes.nodes[0].weights[0] := 0.181308728875592;
-//      outputnodes.nodes[0].weights[1] := 0.338204534724355;
-//      outputnodes.nodes[0].weights[2] := 0.127761641284451;
-//      outputnodes.nodes[1].output := 0;
-//      outputnodes.nodes[1].weights[0] := 0.0743262325413525;
-//      outputnodes.nodes[1].weights[1] := 0.417987840482965;
-//      outputnodes.nodes[1].weights[2] := 0.0252059353515506;
-
-//    end;
-
-
-//    C := timer_GetTick;
-//    W.Train(I, o, 0.001, 0.01);
-//    Writeln('TIME: ', tickToTimeStr(timer_GetTick - C));
-
-//  finally
-//    w.Free;
-//  end;
-//end;
 
 procedure TTestCaseNeuronBasics.TestNNWork_LARGE;
 var

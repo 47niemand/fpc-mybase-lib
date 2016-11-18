@@ -26,8 +26,8 @@ uses
   Classes, SysUtils, NNWorkTypes;
 
 type
-  TGetBufferFuzzyValue = function(const PixelPtr: pointer): DType;
-  TSetBufferFuzzyValue = procedure(const PixelPtr: pointer; const Value: DType);
+  TFuzzyGetter = function(const PixelPtr: pointer): DType;
+  TFuzzySetter = procedure(const PixelPtr: pointer; const Value: DType);
 
 function FuzzyByte(const a: DType): byte;
 function FuzzyTrue(const dither: DType = 0.0): DType;
@@ -91,7 +91,7 @@ begin
     Result := _Inv(True);
 end;
 
-function FuzzyNorm(const Value: DType): DType;
+function FuzzyNorm(const Value: DType): DType; inline;
 begin
   if Value < 0 then
     Result := 0
@@ -110,6 +110,7 @@ begin
       Result := Result + Random * dither
     else
       Result := Result - Random * dither;
+  Result := FuzzyNorm(Result);
 end;
 
 function FuzzyFalse(const dither: DType): DType;
@@ -120,6 +121,7 @@ begin
       Result := Result + Random * dither
     else
       Result := Result - Random * dither;
+  Result := FuzzyNorm(Result);
 end;
 
 function FuzzyNot(const Value: DType): DType;

@@ -20,7 +20,7 @@
       </Parsing>
     </CompilerOptions>
     <Description Value="implementation of simple three-layer backpropagation network"/>
-    <Version Major="1"/>
+    <Version Minor="1"/>
     <Files Count="8">
       <Item1>
         <Filename Value="src\main\neuron\fuzzyutils.pas"/>
@@ -58,6 +58,7 @@
     <RequiredPkgs Count="1">
       <Item1>
         <PackageName Value="DmBasePackage"/>
+        <MinVersion Major="1" Valid="True"/>
       </Item1>
     </RequiredPkgs>
     <UsageOptions>

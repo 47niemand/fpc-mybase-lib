@@ -16,6 +16,7 @@ type
     function DoTrain(const NN: TNNWork; const ATrainData: TNNTrainData): DType;
       override;
     class function GetInstance: TNNWorkTrainStrategy; override;
+    destructor Destroy; override;
   end;
 
 
@@ -72,32 +73,38 @@ begin
       if Abort or (_MSE_max_ = 0) then
         break;
     end;
+  PNNTrainData(@ATrainData)^.Iterations := N;
   writeln(format('DONE - MSE = %g, N = %d', [MSE, N]));
   Result := MSE;
 end;
 
 var
-  StrategySinglentonDefaultInstance: TNNWorkTrainStrategy = nil;
+  StrategySinglentonDefault: TNNWorkTrainStrategy = nil;
 
 class function TNNWorkTrainStrategyDefault.GetInstance: TNNWorkTrainStrategy;
 begin
-  if not Assigned(StrategySinglentonDefaultInstance) then
+  if not Assigned(StrategySinglentonDefault) then
   begin
     Result := TNNWorkTrainStrategyDefault.Create;
-    if InterlockedCompareExchange(pointer(StrategySinglentonDefaultInstance),
+    if InterlockedCompareExchange(pointer(StrategySinglentonDefault),
       pointer(Result), nil) <> nil then
       FreeAndNil(Result);
   end;
-  Result := StrategySinglentonDefaultInstance;
+  Result := StrategySinglentonDefault;
+end;
+
+destructor TNNWorkTrainStrategyDefault.Destroy;
+begin
+  InterlockedCompareExchange(pointer(StrategySinglentonDefault),
+    nil, pointer(self));
+  inherited Destroy;
 end;
 
 initialization
 
 finalization
-  FreeAndNil(StrategySinglentonDefaultInstance);
+  FreeAndNil(StrategySinglentonDefault);
 end.
-
-
 
 
 

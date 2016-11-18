@@ -21,9 +21,13 @@ type
   { TNNTrainData }
 
   TNNTrainData = record
+    // some record variables
     Refs: integer;
+    Iterations: integer;
+    // tarin params
     MSE_max: DType;
     eta: DType;
+    // pointers to datastructures
     Data: PVarArrayOfDType;
     desired: PVarArrayOfDType;
     output: PVarArrayOfDType;

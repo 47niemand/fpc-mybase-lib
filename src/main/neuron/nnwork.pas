@@ -17,6 +17,7 @@ type
   TNNWork = class
   private
     FAbort: boolean;
+    FLast_Train_Cycles: integer;
     // statistic variables
     FTrainAdjustHidden: integer;
     FTrainAdjustOutput: integer;
@@ -42,6 +43,7 @@ type
     function RunTrainOutput(const K: integer; const TrainData: PNNTrainData): DType;
   public
     property Last_MSE: DType read FLast_MSE;
+    property Last_Train_Cycles: integer read FLast_Train_Cycles;
     property OutputNodes: TNNLayer read FOutputNodes;
     property HiddenNodes: TNNLayer read FHiddenNodes;
     property InputSize: integer read FInputSize;
@@ -56,7 +58,6 @@ type
     // Training args are input, desired output, minimum error, learning rate
     procedure Train(const Data: TVarArrayOfDType; const desired: TVarArrayOfDType;
       const max_MSE, eta: DType);
-    // Trian with multi-thread optimizations
     // Run args are input data, output
     procedure Run(const AData: TVarArrayOfDType; var AResult: TVarArrayOfDType);
     // Set Output nerurons
@@ -152,7 +153,6 @@ var
 begin
   FAbort := False;
   MSE_max := max_MSE * 2.0;
-  //  N := 0;
   if (InputSize = 0) or (HiddenSize = 0) or (OutputSize = 0) then
     raise Exception.Create('Warning: stupid dimensions. No action taken.');
   SetLength(output, OutputSize);
@@ -169,6 +169,7 @@ begin
   Write(format('Train using strategy %p ', [pointer(FTrainStrategy)]));
   Writeln(format('%s', [FTrainStrategy.ClassName]));
   FLast_MSE := FTrainStrategy.DoTrain(Self, TrainData);
+  FLast_Train_Cycles := TrainData.Iterations;
   setlength(output, 0);
   setlength(output_weight_delta, 0);
   setlength(hidden_weight_delta, 0);

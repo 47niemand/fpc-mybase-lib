@@ -10,11 +10,14 @@ uses
 type
   { TNNWorkTrainSingleThraed }
 
+  { TNNWorkTrainMultiThraed }
+
   TNNWorkTrainMultiThraed = class(TNNWorkTrainStrategy)
   public
     function DoTrain(const NN: TNNWork; const ATrainData: TNNTrainData): DType;
       override;
     class function GetInstance: TNNWorkTrainStrategy; override;
+    destructor Destroy; override;
   end;
 
 
@@ -132,6 +135,8 @@ begin
   for I := 0 to High(EA) do
     FreeAndNil(EA[I]);
 
+  PNNTrainData(@ATrainData)^.Iterations := N;
+
   writeln(format('DONE - MSE = %g, N = %d', [MSE, N]));
   Result := MSE;
 end;
@@ -149,10 +154,15 @@ begin
   Result := StrategySiglentonMultiThread;
 end;
 
+destructor TNNWorkTrainMultiThraed.Destroy;
+begin
+  InterlockedCompareExchange(pointer(StrategySiglentonMultiThread), nil, pointer(self));
+  inherited Destroy;
+end;
+
 
 initialization
 
 finalization
   FreeAndNil(StrategySiglentonMultiThread);
 end.
-

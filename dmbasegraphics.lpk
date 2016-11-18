@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="DmBaseGraphics"/>
+    <AddToProjectUsesSection Value="True"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="src\main\graphics"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+        </SyntaxOptions>
+      </Parsing>
+    </CompilerOptions>
+    <Version Minor="1"/>
+    <Files Count="7">
+      <Item1>
+        <Filename Value="src\main\graphics\ubasebitmap.pas"/>
+        <UnitName Value="uBaseBitmap"/>
+      </Item1>
+      <Item2>
+        <Filename Value="src\main\graphics\ubasebitmapfilter.pas"/>
+        <UnitName Value="uBaseBitmapFilter"/>
+      </Item2>
+      <Item3>
+        <Filename Value="src\main\graphics\ubasebitmaputils.pas"/>
+        <UnitName Value="uBaseBitmapUtils"/>
+      </Item3>
+      <Item4>
+        <Filename Value="src\main\graphics\ubasepixel.pas"/>
+        <UnitName Value="uBasePixel"/>
+      </Item4>
+      <Item5>
+        <Filename Value="src\main\graphics\uconvolutionmatrix.pas"/>
+        <UnitName Value="uConvolutionMatrix"/>
+      </Item5>
+      <Item6>
+        <Filename Value="src\main\graphics\upixelutils.pas"/>
+        <UnitName Value="uPixelUtils"/>
+      </Item6>
+      <Item7>
+        <Filename Value="src\main\graphics\ufilterscollection.pas"/>
+        <UnitName Value="uFiltersCollection"/>
+      </Item7>
+    </Files>
+    <RequiredPkgs Count="3">
+      <Item1>
+        <PackageName Value="DmBasePackage"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCLBase"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+      </Item3>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
