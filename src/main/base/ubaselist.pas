@@ -28,6 +28,13 @@ uses
 
 type
 
+  { EBaseListIdxOutOfBounds }
+
+  EBaseListIdxOutOfBounds = class(EListError)
+    constructor Create(const Idx: integer);
+  end;
+
+
   { IBaseList generic interface provide methods for access elements
     by thier index.  Interface allow search for elements
     in the list.
@@ -86,7 +93,7 @@ type
   end;
 
   { TBaseListEnumerator }
-  
+
   TBaseListEnumerator<T> = class(TInterfacedObject, IEnumerator<T>)
   protected
     FPosition: integer;
@@ -101,6 +108,8 @@ type
   end;
 
 implementation
+
+uses uBaseConsts;
 
 { TBaseList }
 
@@ -171,7 +180,7 @@ begin
   L := FList.Locklist;
   try
     if L.Count = 0 then
-      raise EListError.Create('List is empty');
+      raise EListError.Create(SListEmpty);
     Result := T(L.List^[L.Count - 1]);
   finally
     FList.UnlockList;
@@ -328,5 +337,13 @@ destructor TBaseListEnumerator<T>.Destroy;
 begin
   inherited Destroy;
 end;
+
+{ EBaseListIdxOutOfBounds }
+
+constructor EBaseListIdxOutOfBounds.Create(const Idx: integer);
+begin
+  inherited CreateFmt(SListOutOfBoundsFmt, [Idx]);
+end;
+
 
 end.

@@ -26,20 +26,22 @@ interface
 uses
   Classes, SysUtils, uBaseInterface, uBaseObserver, uBaseEntry;
 
-
 type
   IEnumerableBaseEntry = IEnumerable<IBaseEntry>;
 
 function NewMap: IBaseMap;
+function NewBaseIntfMap: IBaseMap; //TODO: create tests
 
 function GetBaseMapCounter: integer;
 function GetMapObserverCounter: integer;
 function GetBaseMapEnumeratorCounter: integer;
 
 
+
+
 implementation
 
-uses Variants, uBaseListHelper, uBaseValue;
+uses Variants, uBaseListHelper, uBaseValue, uBaseConsts;
 
 var
   BaseMapCounter: integer = 0;
@@ -48,6 +50,28 @@ var
 
 
 type
+
+  { TBaseIntfMap }
+
+  TBaseIntfMap = class(TInterfacedObject, IBaseMap)
+  private
+    FList: TInterfaceList;
+    FNames: TStrings;
+    function InternalIndex(const Name: string): integer;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Append(const Map: IBaseMap); //TODO: do
+    procedure Clear;
+    function Exists(const Name: string): boolean;
+    function Find(const Name: string): IBaseEntry;
+    function GetEnumerator: IBaseEntryEnumerator; //TODO: do
+    function GetValue(const Name: string): variant;
+    function Remove(const Name: string): IBaseEntry;
+    procedure SetValue(const Name: string; const Value: variant);
+    function Size: integer;
+  end;
+
   { TBaseMap }
 
   TMapObserver = class;
@@ -120,6 +144,11 @@ begin
   Result := TBaseMap.Create;
 end;
 
+function NewBaseIntfMap: IBaseMap;
+begin
+  Result := TBaseIntfMap.Create;
+end;
+
 function GetBaseMapCounter: integer;
 begin
   Result := BaseMapCounter;
@@ -133,6 +162,137 @@ end;
 function GetBaseMapEnumeratorCounter: integer;
 begin
   Result := BaseMapEnumeratorCounter;
+end;
+
+{ TBaseIntfMap }
+
+function TBaseIntfMap.InternalIndex(const Name: string): integer;
+begin
+  Result := FNames.IndexOf(Name);
+  if Result >= 0 then
+    Result := integer(FNames.Objects[Result]);
+end;
+
+constructor TBaseIntfMap.Create;
+begin
+  inherited Create;
+  FList := TInterfaceList.Create;
+  FNames := TStringList.Create;
+end;
+
+destructor TBaseIntfMap.Destroy;
+begin
+  FreeAndNil(FNames);
+  FreeAndNil(FList);
+  inherited Destroy;
+end;
+
+procedure TBaseIntfMap.Append(const Map: IBaseMap);
+begin
+  raise EBaseIntfException.Create(SNotImplemented);
+end;
+
+procedure TBaseIntfMap.Clear;
+begin
+  FList.Lock;
+  try
+    FList.Clear;
+    FNames.Clear;
+  finally
+    FList.Unlock;
+  end;
+end;
+
+function TBaseIntfMap.Exists(const Name: string): boolean;
+begin
+  FList.Lock;
+  Result := InternalIndex(Name) >= 0;
+  FList.Unlock;
+end;
+
+function TBaseIntfMap.Find(const Name: string): IBaseEntry;
+var
+  I: integer;
+begin
+  Result := nil;
+  try
+    FList.Lock;
+    I := InternalIndex(Name);
+    if I >= 0 then
+      Result := NewImmutableEntry(Name, FList.Items[I]);
+  finally
+    FList.Unlock;
+  end;
+end;
+
+function TBaseIntfMap.GetEnumerator: IBaseEntryEnumerator;
+begin
+  Result := nil;
+  raise Exception.Create(SNotImplemented);
+end;
+
+function TBaseIntfMap.GetValue(const Name: string): variant;
+var
+  I: integer;
+begin
+  FList.Lock;
+  try
+    I := InternalIndex(Name);
+    if I >= 0 then
+      Result := FList.Items[I]
+    else
+      Result := Unassigned;
+  finally
+    FList.Unlock;
+  end;
+end;
+
+
+function TBaseIntfMap.Remove(const Name: string): IBaseEntry;
+var
+  I, J: integer;
+begin
+  Result := nil;
+  FList.Lock;
+  try
+    I := FNames.IndexOf(Name);
+    if I >= 0 then
+    begin
+      J := integer(FNames.Objects[I]);
+      Result := NewImmutableEntry(FNames.Strings[I], FList.Items[J]);
+      FNames.Delete(I);
+      FList.Delete(J);
+    end;
+  finally
+    FList.Unlock;
+  end;
+end;
+
+procedure TBaseIntfMap.SetValue(const Name: string; const Value: variant);
+var
+  I, J: integer;
+begin
+  FList.Lock;
+  try
+    I := FNames.IndexOf(Name);
+    if I >= 0 then
+    begin
+      J := integer(FNames.Objects[I]);
+      FList.Items[J] := CastVarToIntf(Value);
+    end
+    else
+    begin
+      J := FList.Add(CastVarToIntf(Value));
+      I := FNames.AddObject(Name, TObject(J));
+    end;
+  finally
+    FList.Unlock;
+  end;
+end;
+
+function TBaseIntfMap.Size: integer;
+begin
+  Result := FList.Count;
 end;
 
 { TParamsObserver }
@@ -219,8 +379,8 @@ begin
   Result := IBaseEntry(FList.List^[FPosition]);
   L := FMap.FList.LockList;
   try
-    if L.IndexOf(Pointer(Result)) < 0 then
-      raise EBaseException.Create('Data concurrency error');
+    if L.IndexOf(pointer(Result)) < 0 then
+      raise EBaseConcurrencyError.Create(SConcurrencyError);
   finally
     FMap.FList.UnlockList;
   end;
@@ -304,7 +464,7 @@ var
 begin
   L := FList.LockList;
   try
-    Result := L.IndexOf(Pointer(Item)) >= 0;
+    Result := L.IndexOf(pointer(Item)) >= 0;
   finally
     FList.UnlockList;
   end;
@@ -318,14 +478,14 @@ begin
   begin
     O := TMapObserver.Create(Self);
     O._AddRef;
-    if InterlockedCompareExchange(Pointer(FMapObserver), Pointer(O), nil) <> nil then
+    if InterlockedCompareExchange(pointer(FMapObserver), pointer(O), nil) <> nil then
     begin
       O._Release;
       O := nil;
       Assert(Assigned(FMapObserver));
     end
     else
-      Assert(Pointer(FMapObserver) = Pointer(O));
+      Assert(pointer(FMapObserver) = pointer(O));
   end;
   Result := FMapObserver;
 end;
@@ -336,14 +496,14 @@ var
 begin
   L := TBaseSubject.Create(Self);
   L._AddRef;
-  if InterlockedCompareExchange(Pointer(FMapSubject), Pointer(L), nil) <> nil then
+  if InterlockedCompareExchange(pointer(FMapSubject), pointer(L), nil) <> nil then
   begin
     Assert(Assigned(FMapSubject));
     L._Release;
     L := nil;
   end
   else
-    Assert(Pointer(L) = Pointer(FMapSubject));
+    Assert(pointer(L) = pointer(FMapSubject));
 end;
 
 procedure TBaseMap.Attach(const Observer: IUnknown);
@@ -407,7 +567,7 @@ begin
   end;
   Notify(booDeleteItem, Result);
 {$IFDEF WITHLOG}
-  Log(Self, nil, 'Remove[%s] -> %p', [AItem, Pointer(Result)]);
+  Log(Self, nil, 'Remove[%s] -> %p', [AItem, pointer(Result)]);
 {$ENDIF}
 end;
 
@@ -483,7 +643,7 @@ begin
       S.Detach(GetMapObserver);
       L := FList.LockList;
       try
-        Idx := L.IndexOf(Pointer(E));
+        Idx := L.IndexOf(pointer(E));
         if Idx > 0 then
         begin
           IBaseEntry(L.List^[Idx]) := nil;
@@ -569,7 +729,7 @@ begin
     FList.UnlockList;
   end;
 {$IFDEF WITHLOG}
-  Log(Self, nil, 'Find[%s] -> %p', [AItem, Pointer(Result)]);
+  Log(Self, nil, 'Find[%s] -> %p', [AItem, pointer(Result)]);
 {$ENDIF}
 end;
 

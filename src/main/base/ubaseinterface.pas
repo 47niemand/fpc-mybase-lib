@@ -25,19 +25,27 @@ unit uBaseInterface;
 interface
 
 uses
-  Classes, SysUtils, Variants, uBaseConsts;
+  Classes, SysUtils, Variants, uBaseTypes, uBaseConsts;
 
 type
 
-  { EBaseException }
+  { EBaseIntfException }
 
-  EBaseException = class(Exception);
+  EBaseIntfException = class(Exception);
 
   { EBaseIntfNotSupported }
 
-  EBaseIntfNotSupported = class(EBaseException)
+  EBaseIntfNotSupported = class(EBaseIntfException)
     constructor CreateMsg(const msg: string);
   end;
+
+  { EBasePropReadOnly }
+
+  EBasePropReadOnly = class(EBaseIntfException);
+
+  { EBaseConcurrencyError }
+
+  EBaseConcurrencyError = class(EBaseIntfException);
 
   { IBaseVersionCounter }
 
@@ -45,6 +53,8 @@ type
     ['{8482E6D3-D8D3-48A5-AFD3-29BCEAE78A52}']
     function Version: integer;
   end;
+
+
 
   { IWeakRef }
 
@@ -154,6 +164,34 @@ type
     property Values[Name: string]: variant read GetValue write SetValue; default;
   end;
 
+  { IBaseMapEvents }
+
+  IBaseMapEvents = interface
+    function GetOnAfterAddItem: TNotifyEvent;
+    function GetOnAfterChangeValue: TNotifyEvent;
+    function GetOnAfterRemoveItem: TNotifyEvent;
+    function GetOnBeforeAddItem: TNotifyEvent;
+    function GetOnBeforeChangeValue: TNotifyEvent;
+    function GetOnBeforeRemoveItem: TNotifyEvent;
+    procedure SetOnAfterAddItem(AValue: TNotifyEvent);
+    procedure SetOnAfterChangeValue(AValue: TNotifyEvent);
+    procedure SetOnAfterRemoveItem(AValue: TNotifyEvent);
+    procedure SetOnBeforeAddItem(AValue: TNotifyEvent);
+    procedure SetOnBeforeChangeValue(AValue: TNotifyEvent);
+    procedure SetOnBeforeRemoveItem(AValue: TNotifyEvent);
+    property OnAfterAddItem: TNotifyEvent read GetOnAfterAddItem write SetOnAfterAddItem;
+    property OnAfterRemoveItem: TNotifyEvent
+      read GetOnAfterRemoveItem write SetOnAfterRemoveItem;
+    property OnAfterChangeValue: TNotifyEvent
+      read GetOnAfterChangeValue write SetOnAfterChangeValue;
+    property OnBeforeAddItem: TNotifyEvent read GetOnBeforeAddItem
+      write SetOnBeforeAddItem;
+    property OnBeforeRemoveItem: TNotifyEvent
+      read GetOnBeforeRemoveItem write SetOnBeforeRemoveItem;
+    property OnBeforeChangeValue: TNotifyEvent
+      read GetOnBeforeChangeValue write SetOnBeforeChangeValue;
+  end;
+
   { TWeaklyInterfacedObject }
 
   TWeaklyInterfacedObject = class(TInterfacedObject, IWeakly)
@@ -177,6 +215,10 @@ function CastInterface(const I: IUnknown): IInterface; inline;
 function SafeBaseObjectReference(const I: IUnknown): TObject;
 function SafeGetWeakRef(const I: IUnknown): IWeakRef;
 
+//todo: create tests
+function VarIsIntf(const V: variant): boolean;
+function CastVarToIntf(const V: variant): IUnknown;
+
 function GetWeakRefCounter: integer;
 function GetWeaklyInterfacedObjectCounter: integer;
 {$IFDEF WITHLOG}
@@ -195,7 +237,7 @@ type
 
   TWeakRef = class(TInterfacedObject, IWeakRef)
   private
-    FOwner: Pointer;
+    FOwner: pointer;
   public
     constructor Create(const AOwner: IUnknown);
     destructor Destroy; override;
@@ -239,50 +281,97 @@ end;
 
 function CastBaseEntry(const I: IUnknown): IBaseEntry;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseEntry, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IBaseEntry');
 end;
 
 function CastBaseObserver(const I: IUnknown): IBaseObserver;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseObserver, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IBaseObserver');
 end;
 
 function CastBaseMap(const I: IUnknown): IBaseMap;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseMap, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IBaseMap');
 end;
 
 function CastBaseSubject(const I: IUnknown): IBaseSubject;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseSubject, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IBaseSubject');
 end;
 
 function CastBaseValue(const I: IUnknown): IBaseValue;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseValue, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IBaseValue');
 end;
 
 function CastBaseClonable(const I: IUnknown): IBaseClonable;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseClonable, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IBaseClonable');
 end;
 
 function CastBaseVersionCounter(const I: IUnknown): IBaseVersionCounter;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseVersionCounter, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IVersionCounter');
 end;
 
 function CastBaseObjectReference(const I: IUnknown): IBaseObjectReference;
 begin
+  if not Assigned(I) then
+    Result := nil
+  else
   if I.QueryInterface(IBaseObjectReference, Result) <> S_OK then
     raise EBaseIntfNotSupported.CreateMsg('IInterfaceObjectReference');
+end;
+
+function VarIsIntf(const V: variant): boolean;
+var
+  U: IUnknown;
+  O: IBaseValue;
+  P: PVarData;
+begin
+  if VarType(V) = varunknown then
+  begin
+    P := FindVarData(V);
+    U := P.vunknown;
+    Result := U.QueryInterface(IUnknown, O) = S_OK;
+    U := nil;
+  end;
+end;
+
+function CastVarToIntf(const V: variant): IUnknown;
+begin
+  if VarIsNull(V) or VarIsEmpty(v) then
+    Result := nil
+  else
+    Result := V;
 end;
 
 function GetWeakRefCounter: integer;
@@ -301,11 +390,11 @@ var
   s, d: string;
 begin
   if Assigned(Sender) then
-    S := format('%s@%p', [Sender.ClassName, Pointer(Sender)])
+    S := format('%s@%p', [Sender.ClassName, pointer(Sender)])
   else
     s := '<nil>';
   if Assigned(Data) then
-    d := format('%s@%p', [Data.ClassName, Pointer(Data)])
+    d := format('%s@%p', [Data.ClassName, pointer(Data)])
   else
     d := '<nil>';
   Writeln(format('[%x] ', [GetCurrentThreadId]), s, '(', d, ') ', format(msg, Args));
@@ -335,7 +424,7 @@ end;
 
 constructor TWeakRef.Create(const AOwner: IUnknown);
 begin
-  FOwner := Pointer(AOwner);
+  FOwner := pointer(AOwner);
 end;
 
 procedure TWeakRef.AfterConstruction;
@@ -379,7 +468,7 @@ begin
   begin
     obj := TWeakRef.Create(Self);
     obj._AddRef;
-    if InterlockedCompareExchange(Pointer(FWeakRef), Pointer(obj), nil) <> nil then
+    if InterlockedCompareExchange(pointer(FWeakRef), pointer(obj), nil) <> nil then
       obj._Release;
     Assert(Assigned(FWeakRef));
   end;

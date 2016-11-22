@@ -19,11 +19,12 @@ type
     procedure TestNNWork_LARGE;
     procedure TestNNWork_LARGE_MultiCPU;
     procedure TestLoadSave;
+    procedure TestForm;
   end;
 
 implementation
 
-
+uses TestNNetForm;
 
 const
   www0: array[0..1, 0..1] of double = ((0.1, 0.9), (0.9, 0.1));
@@ -232,6 +233,11 @@ begin
   finally
     w.Free;
   end;
+end;
+
+procedure TTestCaseNeuronBasics.TestForm;
+begin
+  TfrmNNetTest.Execute;
 end;
 
 

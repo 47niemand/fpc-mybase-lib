@@ -6,7 +6,6 @@ uses SysUtils, Classes, contnrs;
 
 type
 
-
   { IBaseBitmap }
 
   IBaseBitmap = interface

@@ -5,14 +5,15 @@ unit uVariantUtils;
 interface
 
 uses
-  Classes, SysUtils, uBaseConsts;
+  Classes, SysUtils, uBaseConsts, Variants;
+
+type
+  EBaseVariantTypeCastError = class(EVariantTypeCastError);
 
 function BaseVarToStr(const AVar: variant; const AQuoteChar: char = '"'): string;
 function BaseStrToVar(const AStr: string; const AQuoteChar: char = '"'): variant;
 
 implementation
-
-uses variants;
 
 const
   WhiteSpace = [#0..' '];
@@ -61,7 +62,7 @@ begin
   if VarIsStr(AVar) then
     Result := AnsiQuotedStr(AVar, AQuoteChar)
   else
-    raise EVariantTypeCastError.CreateFmt('unsupported format %d', [VarType(AVar)]);
+    raise EBaseVariantTypeCastError.CreateFmt(SUnsupportedFormatFmt, [VarType(AVar)]);
 end;
 
 function BaseStrToVar(const AStr: string; const AQuoteChar: char): variant;

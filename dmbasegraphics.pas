@@ -8,7 +8,7 @@ interface
 
 uses
   uBaseBitmap, uBaseBitmapFilter, uBaseBitmapUtils, uBasePixel, 
-  uConvolutionMatrix, uPixelUtils, uFiltersCollection;
+  uConvolutionMatrix, uFiltersCollection, uPixelUtils;
 
 implementation
 

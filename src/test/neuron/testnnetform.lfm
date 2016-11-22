@@ -1,0 +1,82 @@
+object frmNNetTest: TfrmNNetTest
+  Left = 326
+  Height = 382
+  Top = 179
+  Width = 475
+  Caption = 'frmNNetTest'
+  ClientHeight = 382
+  ClientWidth = 475
+  LCLVersion = '1.6.0.4'
+  object Image1: TImage
+    Left = 0
+    Height = 356
+    Top = 26
+    Width = 216
+    Align = alLeft
+    Proportional = True
+    Stretch = True
+  end
+  object ToolBar1: TToolBar
+    Left = 0
+    Height = 26
+    Top = 0
+    Width = 475
+    Caption = 'ToolBar1'
+    Flat = False
+    Images = ImageList1
+    List = True
+    ShowCaptions = True
+    TabOrder = 0
+    object ToolButton2: TToolButton
+      Left = 1
+      Top = 2
+      Action = aLoad
+    end
+  end
+  object ToolBar2: TToolBar
+    Left = 394
+    Height = 356
+    Top = 26
+    Width = 81
+    Align = alRight
+    AutoSize = True
+    ButtonWidth = 80
+    Caption = 'ToolBar2'
+    Flat = False
+    Images = ImageList1
+    List = True
+    ShowCaptions = True
+    TabOrder = 1
+    object ToolButton1: TToolButton
+      Left = 1
+      Top = 2
+      Action = aIntencityFilter
+    end
+  end
+  object OpenPictureDialog1: TOpenPictureDialog
+    left = 392
+    top = 51
+  end
+  object MenuActions: TActionList
+    Images = ImageList1
+    left = 280
+    top = 51
+    object aLoad: TAction
+      Caption = 'Load Image'
+      OnExecute = aLoadExecute
+    end
+  end
+  object ImageList1: TImageList
+    left = 333
+    top = 51
+  end
+  object ObjActions: TActionList
+    Images = ImageList1
+    left = 280
+    top = 104
+    object aIntencityFilter: TAction
+      Caption = 'Filter Intencity'
+      OnExecute = aLoadExecute
+    end
+  end
+end

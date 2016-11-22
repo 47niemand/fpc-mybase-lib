@@ -40,25 +40,29 @@
         <UnitName Value="uConvolutionMatrix"/>
       </Item5>
       <Item6>
-        <Filename Value="src\main\graphics\upixelutils.pas"/>
-        <UnitName Value="uPixelUtils"/>
-      </Item6>
-      <Item7>
         <Filename Value="src\main\graphics\ufilterscollection.pas"/>
         <UnitName Value="uFiltersCollection"/>
+      </Item6>
+      <Item7>
+        <Filename Value="src\main\graphics\upixelutils.pas"/>
+        <UnitName Value="uPixelUtils"/>
       </Item7>
     </Files>
-    <RequiredPkgs Count="3">
+    <RequiredPkgs Count="4">
       <Item1>
-        <PackageName Value="DmBasePackage"/>
+        <PackageName Value="DmBaseIntfPackage"/>
         <MinVersion Major="1" Valid="True"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCLBase"/>
+        <PackageName Value="DmBasePackage"/>
+        <MinVersion Major="1" Valid="True"/>
       </Item2>
       <Item3>
-        <PackageName Value="FCL"/>
+        <PackageName Value="LCLBase"/>
       </Item3>
+      <Item4>
+        <PackageName Value="FCL"/>
+      </Item4>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

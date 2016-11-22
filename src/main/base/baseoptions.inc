@@ -10,7 +10,7 @@
 // BaseValue directives
 
 {$define WithCS}       // use critical sections
-{.$define SingleCS}     // use single CS for all values
+{.$define SingleCS}     // use single CS
 {$ifndef WithCS}
 
   {$define Use8bitHash}    // choise 8bit hash table
@@ -26,13 +26,10 @@
   {$ifdef Use20bitHash}
      {$undef Use16bitHash}{$undef Use8bitHash}
   {$endif}
-
-
-
-
+ 
   {.$define cahe}         // use cahe mechanism
-  {.$define DeadLockCheck} // check for deadlock by execution time
-
+  {.$define DeadLockCheck} // check for deadlock at execution time
+  
   {.$define ExtCahe}      // use shared chahe - experimental
 {$endif}
 

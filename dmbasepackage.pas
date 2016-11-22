@@ -7,7 +7,8 @@ unit DmBasePackage;
 interface
 
 uses
-  uBaseAppUtils, uBaseConsts, uBaseThreadPool, utimers, uVariantUtils;
+  uBaseAppUtils, uBaseConsts, uBaseThreadPool, utimers, uVariantUtils, 
+  uBaseTypes;
 
 implementation
 

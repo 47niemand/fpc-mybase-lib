@@ -20,7 +20,8 @@ uses
   TestCaseForBvalueconcurency,
   TestCaseForListsAndSets,
   TestCaseNeuronNet,
-  TestCaseBaseBitmap;
+  TestCaseBaseBitmap,
+  TestNNetForm;
 
 {$R *.res}
 

@@ -87,12 +87,17 @@ begin
   finally
     T.Free;
   end;
-
 end;
 
 constructor TCompositeParamContainer.Create(const AParams: array of variant);
+var
+  I: integer;
 begin
-
+  SetLength(FParams, Length(AParams));
+  Assert(Low(FParams) = Low(AParams));
+  Assert(High(FParams) = High(AParams));
+  for I := low(AParams) to High(AParams) do
+    FParams[I] := AParams[I];
 end;
 
 
@@ -124,7 +129,6 @@ var
   I: integer;
   A, B, C: IBaseBitmap;
 begin
-  inherited;
   if FList.Count = 1 then
   begin
     I := 0;
@@ -186,7 +190,7 @@ begin
   SetLength(FParams, Length(args));
   Assert(Low(args) = Low(FParams));
   Assert(High(args) = High(FParams));
-  for I := 0 to Length(args) - 1 do
+  for I := Low(args) to High(args) do
     FParams[I] := args[I];
 end;
 

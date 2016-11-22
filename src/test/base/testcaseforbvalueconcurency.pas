@@ -150,7 +150,7 @@ var
   V: IBaseValue;
   I: integer;
   C: integer;
-  P: Pointer;
+  P: pointer;
 begin
   Gi := nil;
   G := TInterfacedObject.Create;

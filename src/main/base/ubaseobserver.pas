@@ -41,7 +41,7 @@ type
   { TBaseSubject }
   TBaseSubject = class(TInterfacedObject, IBaseSubject)
   private
-    FController: Pointer;
+    FController: pointer;
     FNeedGC: boolean;
     FObservers: IInterfaceList;
     procedure GarbageCollect;
@@ -107,7 +107,7 @@ procedure TBaseSubject.DoNotify(const Target: IBaseObserver;
 begin
 {$IFDEF WITHLOG}
   Log(Self, SafeBaseObjectReference(Target), 'DoNotify[%d](%p,%p)',
-    [Ord(AOperation), Pointer(Target), Pointer(Data)]);
+    [Ord(AOperation), pointer(Target), pointer(Data)]);
 {$ENDIF}
   Target.Update(IInterface(FController), AOperation, Data);
 end;
@@ -119,14 +119,14 @@ var
 begin
   I := TInterfaceList.Create;
   I._AddRef;
-  if InterlockedCompareExchange(Pointer(FObservers), Pointer(I), nil) <> nil then
+  if InterlockedCompareExchange(pointer(FObservers), pointer(I), nil) <> nil then
   begin
     Assert(Assigned(FObservers));
     I._Release;
     I := nil;
   end
   else
-    Assert(Pointer(FObservers) = Pointer(I));
+    Assert(pointer(FObservers) = pointer(I));
 end;
 
 procedure TBaseSubject.AttachWeak(AWeakRef: IWeakRef);
@@ -220,7 +220,7 @@ begin
       AttachObserver(O);
   end
   else
-    raise EBaseException.Create(SCantDoDueInterface);
+    raise EBaseIntfException.Create(SCantDoDueInterface);
 end;
 
 procedure TBaseSubject.Detach(const AObserver: IUnknown);
@@ -244,7 +244,7 @@ begin
         DetachObserver(O);
     end
     else
-      raise EBaseException.Create(SCantDoDueInterface);
+      raise EBaseIntfException.Create(SCantDoDueInterface);
   end;
 end;
 
@@ -269,7 +269,7 @@ var
 begin
 {$IFDEF WITHLOG}
   Log(Self, nil, 'Notify[%d](%p)',
-    [Ord(AOperation), Pointer(Data)]);
+    [Ord(AOperation), pointer(Data)]);
 {$ENDIF}
   if Assigned(FObservers) then
   begin
@@ -295,7 +295,7 @@ begin
               Continue;
             end
             else
-              raise EBaseException.CreateFmt(SWeakPointErrorFmt, ['IBaseObserver']);
+              raise EBaseIntfException.CreateFmt(SWeakPointErrorFmt, ['IBaseObserver']);
           end
           else
           begin
@@ -317,9 +317,9 @@ constructor TBaseSubject.Create(const AController: IUnknown);
 begin
   inherited Create;
   InterLockedIncrement(BaseSubjectCounter);
-  FController := Pointer(AController);
+  FController := pointer(AController);
   {$IFDEF WITHLOG}
-  Log(Self, nil, 'Create Subject for %p', [Pointer(FController)]);
+  Log(Self, nil, 'Create Subject for %p', [pointer(FController)]);
   {$ENDIF}
 end;
 

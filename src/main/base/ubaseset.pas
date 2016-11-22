@@ -127,7 +127,7 @@ begin
   OnUpdateInternal(L, AItem, bloAddItem);
   L.Insert(Idx, nil);
   T(L.List^[Idx]) := AItem;
-  Assert(L.Items[Idx] = Pointer(AItem));
+  Assert(L.Items[Idx] = pointer(AItem));
 end;
 
 function TBaseSet<T>.Add(const Item: T): boolean;

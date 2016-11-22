@@ -28,11 +28,25 @@ uses
 const
   SListItemShouldSupportInterfaceFmt = 'List item should support %s';
   SPropReadOnly = 'Read Only';
+  SBoundsError = 'Index out of bounds';
   SWeakPointErrorFmt = 'WeakRef points to interface that does not support support %s';
   SCantDoDueInterface = 'The observer does not support the necessary interface';
   SVariantNotSupprtedFmt = 'VarType %d not support';
   SCloneError = 'Clone error';
   SComparisonerror = 'Comparison error';
+  SFunctionNameExpected = 'Function name expected';
+  SSubOptionsError = 'Sub options not allowed';
+  SUnexpectedBrace = 'Unexpected close brace occurred';
+  SSyntaxError = 'Syntax error';
+  SOutOfResources = 'Out Of resources';
+  SUnsupportedFormatFmt = 'Unsupported format (VarType = %d)';
+  SVariantCastErrorFmt = 'Can`t cast variant to "%s"';
+  SVariantIntfError = 'Variant value is not interface';
+  SListEmpty = 'List is empty';
+  SListOutOfBoundsFmt = 'List Index (%d) out of bounds';
+  SNotImplemented = 'Not yet implemented!';
+  SConcurrencyError = 'Concurrency error';
+
 
 const
   BaseFormatSettings: TFormatSettings = (CurrencyFormat: 1;

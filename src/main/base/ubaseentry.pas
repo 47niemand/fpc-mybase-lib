@@ -112,7 +112,7 @@ begin
   if E.QueryInterface(IBaseClonable, I) = S_OK then
   begin
     if I.Clone.QueryInterface(IBaseEntry, Result) <> S_OK then
-      raise EBaseException.Create(SCloneError);
+      raise EBaseIntfException.Create(SCloneError);
   end
   else
     Result := NewEntry(E.Name, E.Value);
@@ -138,7 +138,7 @@ end;
 procedure TBaseImmutableEntry.SetValue(const Value: variant);
 begin
   Assert(Assigned(@Value));
-  raise EPropReadOnly.Create(SPropReadOnly);
+  raise EBasePropReadOnly.Create(SPropReadOnly);
 end;
 
 constructor TBaseImmutableEntry.Create(const AName: string; const AValue: variant);
@@ -192,7 +192,7 @@ var
   S: IBaseSubject;
 begin
   S := TBaseSubject.Create(Self);
-  if InterlockedCompareExchange(Pointer(FSubject), Pointer(S), nil) <> nil then
+  if InterlockedCompareExchange(pointer(FSubject), pointer(S), nil) <> nil then
   begin
     S := nil;
     Assert(Assigned(FSubject));
@@ -200,7 +200,7 @@ begin
   else
   begin
     S._AddRef;
-    Assert(Pointer(FSubject) = Pointer(S));
+    Assert(pointer(FSubject) = pointer(S));
   end;
 end;
 

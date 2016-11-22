@@ -187,7 +187,7 @@ begin
   AssertEquals(3, FTestCounter);
   EE := nil;
   EE := M.Remove('test'); // extract entry and store it globaly,
-  AssertSame(Pointer(E), Pointer(EE));
+  AssertSame(pointer(E), pointer(EE));
   AssertEquals(4, FTestCounter); // remove operation generated boodelete event
   M.Clear; // clear generate free event for all items in map
   AssertEquals(5, FTestCounter);

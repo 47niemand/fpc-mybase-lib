@@ -110,7 +110,7 @@ var
     AssertEquals('weak object is alive', True, W.IsAlive);
     J := W.Get;
     AssertEquals('should has three refs', 2, TInterfacedObject(T).RefCount);
-    AssertSame('has weak object is point to I', Pointer(I), Pointer(J));
+    AssertSame('has weak object is point to I', pointer(I), pointer(J));
     J := nil; // decrase refs
     AssertEquals('should has two refs', 1, TInterfacedObject(T).RefCount);
     AssertEquals('should be one weakRef', 1, GetWeakRefCounter); // it's W
@@ -120,7 +120,7 @@ var
     // with access to T we should catch access violation
     AssertEquals('weak object is dead', False, W.IsAlive);
     J := W.Get;
-    AssertSame('weak object is dead', nil, Pointer(J));
+    AssertSame('weak object is dead', nil, pointer(J));
     J := nil;
     AssertEquals('should be one weakRef', 1, GetWeakRefCounter);
     W := nil;
@@ -131,7 +131,7 @@ var
   E: IWeakly;
   P: IWeakRef;
   Res: longint;
-  A, B, C: Pointer;
+  A, B, C: pointer;
 begin
   AssertEquals('should not be any weakRef', 0, GetWeakRefCounter);
   T := TWeakObject.Create;
@@ -146,17 +146,17 @@ begin
 
   AssertEquals('should be any weakrefs', 0, GetWeakRefCounter);
   P := E.WeakRef; // get ref
-  B := Pointer(P); // we need only pointer to check
+  B := pointer(P); // we need only pointer to check
   P := nil; // and clean up
   AssertEquals('should has two refs', 2, TInterfacedObject(T).RefCount);
   AssertEquals('should be one weakrefs', 1, GetWeakRefCounter);
   P := E.WeakRef;
-  C := Pointer(P);
+  C := pointer(P);
   P := nil;
   AssertEquals('should has two refs', 2, TInterfacedObject(T).RefCount);
   AssertEquals('should be one weakrefs', 1, GetWeakRefCounter);
   P := SafeGetWeakRef(I); // another way to get weak refs if interface supports it
-  A := Pointer(P);
+  A := pointer(P);
   P := nil;
   AssertEquals('should has two refs', 2, TInterfacedObject(T).RefCount);
   AssertEquals('should be one weakrefs', 1, GetWeakRefCounter);

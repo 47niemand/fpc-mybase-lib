@@ -28,6 +28,12 @@ interface
 uses
   Classes, SysUtils, variants, uBaseInterface;
 
+type
+
+  { EValueDeadlock }
+
+  EValueDeadlock = class(EBaseIntfException);
+
 function NewValue(const AValue: variant): IBaseValue; overload;
 function NewValue: IBaseValue; overload;
 function NewImmutableValue(const V: variant): IBaseValue;
@@ -663,7 +669,7 @@ end;
 procedure TBaseImmutableValue.SetValue(const Value: variant);
 begin
   assert(Assigned(@Value));
-  raise EBaseException.Create(SPropReadOnly);
+  raise EBasePropReadOnly.Create(SPropReadOnly);
 end;
 
 function TBaseImmutableValue.Clone(const AValue: variant): IBaseValue;
@@ -702,7 +708,7 @@ begin
   {%H-}if HashRefsSize > 16 then
     {%H-}Result := ((U32TO16[0] xor U32TO16[1]) and HashMask)
   else
-    {%H-}raise EBaseException.Create(SHashError);
+    {%H-}raise EBaseIntfException.Create(SHashError);
   Assert((Result {%H-} >= Low(FHashRefs)) and (Result <= High(FHashRefs)));
 end;
 
@@ -721,7 +727,7 @@ begin
   if HashRefsBits = 16 then
     Result := U64TO16[0] xor U64TO16[1] xor U64TO16[2] xor U64TO16[3]
   else
-    raise EBaseException.Create(SHashError);
+    raise EBaseIntfException.Create(SHashError);
   Assert((Result {%H-} >= Low(FHashRefs)) and (Result <= High(FHashRefs)));
 end;
 
@@ -734,7 +740,7 @@ var
 begin
   Assert(h = HashConvolution(P));
   T := InterlockedCompareExchange(FHashCahe[H], P, nil);
-  if Assigned(T) and (Pointer(P) <> Pointer(T)) then
+  if Assigned(T) and (pointer(P) <> pointer(T)) then
   begin
     // bad we need dispose this
     Dispose(p);
@@ -905,7 +911,7 @@ begin
       O := nil;
     end;
 {$IFDEF WITHLOG}
-    Log(Self, nil, 'TryNew %p -> Hash=%x', [Pointer(P), H]);
+    Log(Self, nil, 'TryNew %p -> Hash=%x', [pointer(P), H]);
 {$ENDIF}
     Assert(H = HashConvolution(P));
     V := InterlockedCompareExchange(PInteger(@FHashRefs[H])^, 1, 0);
@@ -937,11 +943,11 @@ begin
         InterLockedIncrement(BaseValueDisposeCounter);
         P := nil;
 {$endif}
-        raise EBaseException.CreateFmt(SDeadLockErrorFmt, [1]);
+        raise EValueDeadlock.CreateFmt(SDeadLockErrorFmt, [1]);
       end;
 {$ENDIF}
       if c < 0 then
-        raise EBaseException.CreateFmt(SDeadLockErrorFmt, [2]);
+        raise EValueDeadlock.CreateFmt(SDeadLockErrorFmt, [2]);
       O := P;
 {$ifdef cahe}
       HT := h;
@@ -1088,10 +1094,10 @@ begin
       InterLockedIncrement(BaseValueReadSkipCount);
       {$IFDEF DeadLockCheck}
       if (GetTickCount - D) > 1000 then
-        raise EBaseException.CreateFmt(SDeadLockErrorFmt, [3]);
+        raise EValueDeadlock.CreateFmt(SDeadLockErrorFmt, [3]);
       {$ENDIF}
       if C < 0 then
-        raise EBaseException.CreateFmt(SDeadLockErrorFmt, [4]);
+        raise EValueDeadlock.CreateFmt(SDeadLockErrorFmt, [4]);
       ThreadSwitch;
     end;
   until Done;

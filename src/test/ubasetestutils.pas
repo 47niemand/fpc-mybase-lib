@@ -205,7 +205,7 @@ end;
 function GetSafeObjName(const T: TObject): string;
 begin
   if Assigned(T) then
-    Result := format('<%s@%p>', [T.ClassName, Pointer(T)])
+    Result := format('<%s@%p>', [T.ClassName, pointer(T)])
   else
     Result := '<nil>';
 end;
@@ -218,7 +218,7 @@ begin
   if Assigned(T) then
     Result := GetSafeObjName(T)
   else
-    Result := format('<%p>', [Pointer(I)]);
+    Result := format('<%p>', [pointer(I)]);
 end;
 
 

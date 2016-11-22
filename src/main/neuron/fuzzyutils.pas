@@ -66,7 +66,7 @@ begin
   if APropobility <= ephsilon then
     Result := _Inv(False)
   else
-  if APropobility >= 1 - ephsilon then
+  if APropobility >= (1 - ephsilon) then
     Result := _Inv(True)
   else
   if SameValue(APropobility, 0.5, ephsilon) then
@@ -107,10 +107,9 @@ begin
   Result := fuzzyceli;
   if dither <> 0 then
     if Random(2) = 0 then
-      Result := Result + Random * dither
+      Result := FuzzyNorm(Result + Random * dither)
     else
-      Result := Result - Random * dither;
-  Result := FuzzyNorm(Result);
+      Result := FuzzyNorm(Result - Random * dither);
 end;
 
 function FuzzyFalse(const dither: DType): DType;
@@ -118,10 +117,9 @@ begin
   Result := fuzzyflor;
   if not SameValue(0.0, dither, ephsilon) then
     if Random(2) = 0 then
-      Result := Result + Random * dither
+      Result := FuzzyNorm(Result + Random * dither)
     else
-      Result := Result - Random * dither;
-  Result := FuzzyNorm(Result);
+      Result := FuzzyNorm(Result - Random * dither);
 end;
 
 function FuzzyNot(const Value: DType): DType;

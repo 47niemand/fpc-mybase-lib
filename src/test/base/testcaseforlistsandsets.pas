@@ -199,7 +199,7 @@ begin
   begin
     B := TListHelperTest.BinarySearch(L, A[O[I]], J, LeftTestComparison);
     AssertEquals(False, B);
-    L.Insert(J, Pointer(A[O[I]]));
+    L.Insert(J, pointer(A[O[I]]));
   end;
 
   for I := 0 to 9 do
@@ -307,18 +307,18 @@ begin
   AssertEquals('add new item', 4, S.Count);
 
   AssertEquals('check item value', 1, ItemA.GetValue);
-  AssertNotSame(Pointer(ItemA), Pointer(ItemA1));
+  AssertNotSame(pointer(ItemA), pointer(ItemA1));
 
   ItemA_ := S.Find(ItemA1);
   AssertSame('this mean that value of item A1 is equal ' +
-    'to A2 by LeftTestComparison comparing', Pointer(ItemA), Pointer(ItemA_));
+    'to A2 by LeftTestComparison comparing', pointer(ItemA), pointer(ItemA_));
   ItemA_ := nil;
   ItemA_ := S.Remove(ItemA1);
   AssertEquals('remove item', 3, S.Count);
-  AssertSame(Pointer(ItemA), Pointer(ItemA_));
+  AssertSame(pointer(ItemA), pointer(ItemA_));
 
   ItemA1 := S.Find(TTestClass.New(1));
-  AssertNull(Pointer(ItemA1));
+  AssertNull(pointer(ItemA1));
 
   S.Clear;
   AssertEquals(0, S.Count);

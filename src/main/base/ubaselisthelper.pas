@@ -11,11 +11,6 @@ type
 
   TBaseListOperation = (bloAddItem, bloChange, bloDeleteItem, bloCustom, bloFree);
 
-  { EBaseListIdxOutOfBounds }
-
-  EBaseListIdxOutOfBounds = class(EListError)
-    constructor Create(const Idx: integer);
-  end;
 
   TLeftComparison<T> = function(const Left: T; var Value): integer;
 
@@ -113,12 +108,6 @@ begin
   Result := -1;
 end;
 
-{ EBaseListIdxOutOfBounds }
-
-constructor EBaseListIdxOutOfBounds.Create(const Idx: integer);
-begin
-  inherited CreateFmt('List Index (%d) out of bounds', [Idx]);
-end;
 
 
 end.

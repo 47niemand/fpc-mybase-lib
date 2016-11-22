@@ -8,7 +8,11 @@ uses
   Classes, SysUtils;
 
 type
+  EParamsParseError = class(EParserError);
+
   TVarArray = array of variant;
+
+
 
 
 function SplitParams(const S: string): TStrings;
@@ -17,7 +21,7 @@ procedure ParamStrToArray(const S: string; var o: TVarArray);
 
 implementation
 
-uses variants;
+uses variants, uBaseConsts;
 
 function SplitParams(const S: string): TStrings;
 const
@@ -64,16 +68,16 @@ begin
         if P.Strings[I] = '(' then
         begin
           if Length(Name) = 0 then
-            raise Exception.Create('function name expected');
+            raise EParamsParseError.Create(SFunctionNameExpected);
           if Assigned(Params) then
-            raise Exception.Create('sub options not allowed');
+            raise EParamsParseError.Create(SSubOptionsError);
           Params := TStringList.Create;
         end
         else
         if P.Strings[I] = ')' then
         begin
           if not Assigned(Params) then
-            raise Exception.Create('unexpected close brace');
+            raise EParamsParseError.Create(SUnexpectedBrace);
 
           if Params.Count > 0 then
           begin
@@ -103,7 +107,7 @@ begin
       if Length(Name) > 0 then
         Result.Add(Name);
       if Assigned(Params) then
-        raise Exception.Create('syntax error');
+        raise EParamsParseError.Create(SSyntaxError);
     finally
       FreeAndNil(Params);
       P.Free;

@@ -23,10 +23,15 @@ unit uBaseThreadPool;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, uBaseTypes;
 
 type
 
+  { EBasePoolError }
+
+  EBasePoolError = class(EBaseException);
+
+  // forward declaration
   TBasePoolQueue = class;
 
   { TBasePoolObject }
@@ -65,6 +70,8 @@ type
 
 
 implementation
+
+uses uBaseConsts;
 
 { TBasePoolObject }
 
@@ -131,7 +138,7 @@ begin
   try
     if L.Count > 0 then
     begin
-      Pointer(Result) := L.Last;
+      pointer(Result) := L.Last;
       L.Delete(L.Count - 1);
     end
     else
@@ -141,7 +148,7 @@ begin
       Result := GetPoolObjectClass.Create(Self);
     end
     else
-      raise Exception.Create('out of resources');
+      raise EBasePoolError.Create(SOutOfResources);
   finally
     FThreadPool.UnlockList;
   end;
@@ -149,7 +156,7 @@ end;
 
 procedure TBasePoolQueue.Push(const T: TBasePoolObject);
 begin
-  FThreadPool.Add(Pointer(T));
+  FThreadPool.Add(pointer(T));
 end;
 
 function TBasePoolQueue.Remove(const T: TBasePoolObject): boolean;
@@ -157,7 +164,7 @@ var
   L: TList;
 begin
   L := FThreadPool.LockList;
-  Result := L.Remove(Pointer(T)) >= 0;
+  Result := L.Remove(pointer(T)) >= 0;
   if Result then
     Dec(FAllocatedCount);
   Assert(FAllocatedCount = L.Count);

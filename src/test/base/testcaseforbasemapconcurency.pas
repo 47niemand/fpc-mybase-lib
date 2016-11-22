@@ -170,7 +170,7 @@ end;
 procedure TTestCaseForBaseMapConcurency.TestMapConcurency;
 var
   M: IBaseMap;
-  R: Pointer;
+  R: pointer;
   O: IBaseObserver;
   C: integer;
   L: TObjectList;

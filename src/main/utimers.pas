@@ -14,7 +14,7 @@ function tickToTimeStr(const I: int64): string;
 
 implementation
 
-uses Windows, sysutils;
+uses Windows, SysUtils;
 
 var
   timerFrequency: int64;

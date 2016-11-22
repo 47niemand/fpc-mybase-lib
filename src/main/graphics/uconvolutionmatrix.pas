@@ -11,11 +11,50 @@ type
 
   TEdgeEffect = (EF_NONE, EF_WARP, EF_EXTEND);
 
+  { IConvolutionMatrix }
+
+  IConvolutionMatrix = interface
+    ['{41CE0832-5FEC-4E72-9860-91A10A8E3CD7}']
+    function GetCell(Row, Col: integer): integer;
+    function GetCols: integer;
+    function GetNormal: integer;
+    function GetRows: integer;
+    procedure ApplyConvolutionMatrix(const input, output: IBaseBitmap);
+    function GetSize: integer;
+    procedure Normalize;
+    procedure SetCell(Row, Col: integer; AValue: integer);
+    procedure SetNormal(AValue: integer);
+    procedure SetSize(AValue: integer);
+    property Cell[Row, Col: integer]: integer read GetCell write SetCell; default;
+    property Cols: integer read GetCols;
+    property Normal: integer read GetNormal write SetNormal;
+    property Rows: integer read GetRows;
+    property Size: integer read GetSize write SetSize;
+  end;
+
+// some standart matrix interfaces
+
+function GetBoxBlurMatrix: IConvolutionMatrix;
+function GetEdgeDetectionMatrix: IConvolutionMatrix;
+function GetEdgeDetectionMatrixLess: IConvolutionMatrix;
+function GetEdgeDetectionMatrixMore: IConvolutionMatrix;
+function GetGaussianBlurMatrix: IConvolutionMatrix;
+function GetIdentityMatrix: IConvolutionMatrix;
+function GetSharpenMatrix: IConvolutionMatrix;
+function GetUnSharpenMatrix: IConvolutionMatrix;
+
+implementation
+
+
+uses variants, uBaseTypes, uBaseInterface, uBaseMap;
+
+type
+
   { TConvolutionMatrix }
 
   // TODO Set/Get Pixel Value
 
-  TConvolutionMatrix = class
+  TConvolutionMatrix = class(TInterfacedObject, IConvolutionMatrix)
   private
     FNormal: integer;
     FSize: integer;
@@ -34,182 +73,171 @@ type
       const edgeeffect: TEdgeEffect; const midr, midc: integer; const x, y: integer);
   public
     procedure ApplyConvolutionMatrix(const input, output: IBaseBitmap);
+    function GetNormal: integer;
+    function GetSize: integer;
     procedure Normalize;
     property Cell[Row, Col: integer]: integer read GetCell write SetCell; default;
     property Cols: integer read GetCols;
-    property Normal: integer read FNormal write SetNormal;
+    property Normal: integer read GetNormal write SetNormal;
     property Rows: integer read GetRows;
-    property Size: integer read FSize write SetSize;
+    property Size: integer read GetSize write SetSize;
   end;
-
-
-type
-  TConvolutionKind = (BoxBlur, GaussianBlur, Identity, Sharpen,
-    EdgeDetection, UnSharpen);
-
-
-// some standart matrix as singlenton
-
-function GetBoxBlurMatrix: TConvolutionMatrix;
-function GetGaussianBlurMatrix: TConvolutionMatrix;
-function GetIdentityMatrix: TConvolutionMatrix;
-function GetSharpenMatrix: TConvolutionMatrix;
-function GetEdgeDetectionMatrix: TConvolutionMatrix;
-function GetUnSharpenMatrix: TConvolutionMatrix;
-
-implementation
-
-type
-
-  { TMatrixSetup }
-
-  TMatrixSetup = class
-    class procedure MatrixDoesBoxBlur(const M: TConvolutionMatrix);
-    class procedure MatrixDoesGaussianBlur(const M: TConvolutionMatrix);
-    class procedure MatrixDoesIdentity(const M: TConvolutionMatrix);
-    class procedure MatrixDoesSharpen(const M: TConvolutionMatrix);
-    class procedure MatrixDoesEdgeDetection(const M: TConvolutionMatrix;
-      intencity: integer = 1);
-    class procedure MatrixDoesUnSharpen(const M: TConvolutionMatrix);
-  end;
-
-
-var
-  FBoxBlurMatrix: TConvolutionMatrix;
-  FGaussianBlurMatrix: TConvolutionMatrix;
-  FIdentityMatrix: TConvolutionMatrix;
-  FSharpenMatrix: TConvolutionMatrix;
-  FEdgeDetectionMatrix: TConvolutionMatrix;
-  FUnSharpenMatrix: TConvolutionMatrix;
-
-type
-
-  PObject = ^TObject;
 
   { TConvolutionMatrixImut }
 
   TConvolutionMatrixImut = class(TConvolutionMatrix)
   private
     FFinalized: boolean;
-    FOwnptr: PObject;
-  protected
-    procedure OnPropertyChangeing; override;
-    procedure Finalize;
   public
-    constructor Create(var AOwnvar: TObject);
-    destructor Destroy; override;
+    function Finalize: IConvolutionMatrix;
+    procedure OnPropertyChangeing; override;
   end;
 
-function GetBoxBlurMatrix: TConvolutionMatrix;
-begin
-  if not Assigned(FBoxBlurMatrix) then
-  begin
-    Result := TConvolutionMatrixImut.Create(TObject(FBoxBlurMatrix));
-    TMatrixSetup.MatrixDoesBoxBlur(Result);
-    if Result <> FBoxBlurMatrix then
-      FreeAndNil(Result);
-    if Assigned(Result) then
-      TConvolutionMatrixImut(Result).Finalize;
+  { TMatrixSetup }
+
+  TMatrixSetup = class
+    class function MatrixDoesBoxBlur(const M: TConvolutionMatrix): TConvolutionMatrix;
+    class function MatrixDoesGaussianBlur(const M: TConvolutionMatrix): TConvolutionMatrix;
+    class function MatrixDoesIdentity(const M: TConvolutionMatrix): TConvolutionMatrix;
+    class function MatrixDoesSharpen(const M: TConvolutionMatrix): TConvolutionMatrix;
+    class function MatrixDoesEdgeDetection(const M: TConvolutionMatrix;
+      intencity: integer = 1): TConvolutionMatrix;
+    class function MatrixDoesUnSharpen(const M: TConvolutionMatrix): TConvolutionMatrix;
   end;
-  Result := FBoxBlurMatrix;
+
+function CastVarToConvolutionMatrix(const V: variant): IConvolutionMatrix;
+begin
+  if VarisNull(v) or VarIsEmpty(v) then
+    Result := nil
+  else
+    Result := v;
 end;
 
-function GetGaussianBlurMatrix: TConvolutionMatrix;
+var
+  BasicMatrix: IBaseMap;
+
+procedure RegisterConvMatrix(const Name: string; const Intf: IConvolutionMatrix);
 begin
-  if not Assigned(FGaussianBlurMatrix) then
-  begin
-    Result := TConvolutionMatrixImut.Create(TObject(FGaussianBlurMatrix));
-    TMatrixSetup.MatrixDoesGaussianBlur(Result);
-    if Result <> FBoxBlurMatrix then
-      FreeAndNil(Result);
-    if Assigned(Result) then
-      TConvolutionMatrixImut(Result).Finalize;
-  end;
-  Result := FGaussianBlurMatrix;
+  BasicMatrix.Values[Name] := CastInterface(Intf);
 end;
 
-function GetIdentityMatrix: TConvolutionMatrix;
+function GetBoxBlurMatrix: IConvolutionMatrix;
+const
+  _GetName = 'GetBoxBlurMatrix';
 begin
-  if not Assigned(FIdentityMatrix) then
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
   begin
-    Result := TConvolutionMatrixImut.Create(TObject(FIdentityMatrix));
-    TMatrixSetup.MatrixDoesIdentity(Result);
-    if InterlockedCompareExchange(pointer(FIdentityMatrix),
-      pointer(Result), nil) <> nil then
-      FreeAndNil(Result);
-    if Assigned(Result) then
-      TConvolutionMatrixImut(Result).Finalize;
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesBoxBlur(
+      TConvolutionMatrixImut.Create)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
   end;
-  Result := FIdentityMatrix;
 end;
 
-function GetSharpenMatrix: TConvolutionMatrix;
+function GetEdgeDetectionMatrix: IConvolutionMatrix;
+const
+  _GetName = 'GetEdgeDetectionMatrix';
 begin
-  if not Assigned(FSharpenMatrix) then
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
   begin
-    Result := TConvolutionMatrixImut.Create(TObject(FSharpenMatrix));
-    TMatrixSetup.MatrixDoesSharpen(Result);
-    if Result <> FSharpenMatrix then
-      FreeAndNil(Result);
-    if Assigned(Result) then
-      TConvolutionMatrixImut(Result).Finalize;
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesEdgeDetection(
+      TConvolutionMatrixImut.Create, 1)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
   end;
-  Result := FSharpenMatrix;
 end;
 
-function GetEdgeDetectionMatrix: TConvolutionMatrix;
+function GetEdgeDetectionMatrixLess: IConvolutionMatrix;
+const
+  _GetName = 'GetEdgeDetectionMatrixLess';
 begin
-  if not Assigned(FEdgeDetectionMatrix) then
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
   begin
-    Result := TConvolutionMatrixImut.Create(TObject(FEdgeDetectionMatrix));
-    TMatrixSetup.MatrixDoesEdgeDetection(Result);
-    if Result <> FEdgeDetectionMatrix then
-      FreeAndNil(Result);
-    if Assigned(Result) then
-      TConvolutionMatrixImut(Result).Finalize;
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesEdgeDetection(
+      TConvolutionMatrixImut.Create, 0)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
   end;
-  Result := FEdgeDetectionMatrix;
 end;
 
-function GetUnSharpenMatrix: TConvolutionMatrix;
+function GetEdgeDetectionMatrixMore: IConvolutionMatrix;
+const
+  _GetName = 'GetEdgeDetectionMatrixMore';
 begin
-  if not Assigned(FUnSharpenMatrix) then
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
   begin
-    Result := TConvolutionMatrixImut.Create(TObject(FUnSharpenMatrix));
-    TMatrixSetup.MatrixDoesUnSharpen(Result);
-    if Result <> FUnSharpenMatrix then
-      FreeAndNil(Result);
-    if Assigned(Result) then
-      TConvolutionMatrixImut(Result).Finalize;
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesEdgeDetection(
+      TConvolutionMatrixImut.Create, 2)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
   end;
-  Result := FUnSharpenMatrix;
+end;
+
+function GetGaussianBlurMatrix: IConvolutionMatrix;
+const
+  _GetName = 'GetGaussianBlurMatrix';
+begin
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
+  begin
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesGaussianBlur(
+      TConvolutionMatrixImut.Create)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
+  end;
+end;
+
+function GetIdentityMatrix: IConvolutionMatrix;
+const
+  _GetName = 'GetIdentityMatrix';
+begin
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
+  begin
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesIdentity(
+      TConvolutionMatrixImut.Create)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
+  end;
+end;
+
+function GetSharpenMatrix: IConvolutionMatrix;
+const
+  _GetName = 'GetSharpenMatrix';
+begin
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
+  begin
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesSharpen(
+      TConvolutionMatrixImut.Create)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
+  end;
+end;
+
+function GetUnSharpenMatrix: IConvolutionMatrix;
+const
+  _GetName = 'GetUnSharpenMatrix';
+begin
+  Result := CastVarToConvolutionMatrix(BasicMatrix.Values[_GetName]);
+  if not Assigned(Result) then
+  begin
+    Result := TConvolutionMatrixImut(TMatrixSetup.MatrixDoesUnSharpen(
+      TConvolutionMatrixImut.Create)).Finalize;
+    RegisterConvMatrix(_GetName, Result);
+  end;
 end;
 
 { TConvolutionMatrixImut }
 
-procedure TConvolutionMatrixImut.OnPropertyChangeing;
+function TConvolutionMatrixImut.Finalize: IConvolutionMatrix;
 begin
+  Result := Self;
   if FFinalized then
-    raise EPropReadOnly.Create('can`t change');
-end;
-
-procedure TConvolutionMatrixImut.Finalize;
-begin
+    exit;
   FFinalized := True;
 end;
 
-constructor TConvolutionMatrixImut.Create(var AOwnvar: TObject);
+procedure TConvolutionMatrixImut.OnPropertyChangeing;
 begin
-  inherited Create;
-  if InterlockedCompareExchange(pointer(AOwnvar), pointer(Self), nil) = nil then
-    FOwnptr := @AOwnvar;
-end;
-
-destructor TConvolutionMatrixImut.Destroy;
-begin
-  if Assigned(FOwnptr) then
-    InterlockedCompareExchange(pointer(FOwnptr^), nil, pointer(self));
-  inherited Destroy;
+  raise EBasePropReadOnly.Create('Can`t change');
 end;
 
 { TConvolutionMatrix }
@@ -217,7 +245,7 @@ end;
 function TConvolutionMatrix.GetCell(Row, Col: integer): integer;
 begin
   if (Row < 0) or (Row >= Rows) or (Row < 0) or (Row >= Cols) then
-    raise Exception.Create('index out of range');
+    raise EBoundsCheckError.Create('index out of bounds');
   Result := FMatrix[Row][Col];
 end;
 
@@ -234,7 +262,7 @@ end;
 procedure TConvolutionMatrix.SetCell(Row, Col: integer; AValue: integer);
 begin
   if (Row < 0) or (Row >= Rows) or (Row < 0) or (Row >= Cols) then
-    raise Exception.Create('index out of range');
+    raise EBoundsCheckError.Create('index out of range');
   if FMatrix[Row][Col] = AValue then
     exit;
   OnPropertyChangeing;
@@ -257,7 +285,7 @@ begin
     Exit;
   OnPropertyChangeing;
   if not odd(AValue) then
-    raise Exception.Create('odd size requerd');
+    raise ERangeError.Create('odd size requerd');
   FSize := AValue;
   for I := FSize to Length(FMatrix) - 1 do
     SetLength(FMatrix[I], 0);
@@ -346,9 +374,20 @@ begin
       ApplyConvolutionMatrixCore(input, output, edgeeffect, midr, midc, x, y);
 end;
 
+function TConvolutionMatrix.GetNormal: integer;
+begin
+  Result := FNormal;
+end;
+
+function TConvolutionMatrix.GetSize: integer;
+begin
+  Result := FSize;
+end;
+
 { TMatrixSetup }
 
-class procedure TMatrixSetup.MatrixDoesIdentity(const M: TConvolutionMatrix);
+class function TMatrixSetup.MatrixDoesIdentity(const M: TConvolutionMatrix):
+TConvolutionMatrix;
 begin
   with M do
   begin
@@ -366,10 +405,11 @@ begin
     Cell[2, 2] := 0;
     Normalize;
   end;
+  Result := M;
 end;
 
-class procedure TMatrixSetup.MatrixDoesEdgeDetection(const M: TConvolutionMatrix;
-  intencity: integer);
+class function TMatrixSetup.MatrixDoesEdgeDetection(const M: TConvolutionMatrix;
+  intencity: integer): TConvolutionMatrix;
 begin
   with M do
   begin
@@ -422,9 +462,11 @@ begin
     end;
     Normalize;
   end;
+  Result := M;
 end;
 
-class procedure TMatrixSetup.MatrixDoesSharpen(const M: TConvolutionMatrix);
+class function TMatrixSetup.MatrixDoesSharpen(const M: TConvolutionMatrix):
+TConvolutionMatrix;
 begin
   with M do
   begin
@@ -443,9 +485,11 @@ begin
 
     Normalize;
   end;
+  Result := M;
 end;
 
-class procedure TMatrixSetup.MatrixDoesBoxBlur(const M: TConvolutionMatrix);
+class function TMatrixSetup.MatrixDoesBoxBlur(const M: TConvolutionMatrix):
+TConvolutionMatrix;
 begin
   with M do
   begin
@@ -463,9 +507,11 @@ begin
     Cell[2, 2] := 1;
     Normalize;
   end;
+  Result := M;
 end;
 
-class procedure TMatrixSetup.MatrixDoesGaussianBlur(const M: TConvolutionMatrix);
+class function TMatrixSetup.MatrixDoesGaussianBlur(
+  const M: TConvolutionMatrix): TConvolutionMatrix;
 begin
   with M do
   begin
@@ -483,9 +529,11 @@ begin
     Cell[2, 2] := 1;
     Normalize;
   end;
+  Result := M;
 end;
 
-class procedure TMatrixSetup.MatrixDoesUnSharpen(const M: TConvolutionMatrix);
+class function TMatrixSetup.MatrixDoesUnSharpen(const M: TConvolutionMatrix):
+TConvolutionMatrix;
 begin
   with M do
   begin
@@ -521,16 +569,13 @@ begin
     Cell[4, 4] := 1;
     Normalize;
   end;
+  Result := M;
 end;
 
-
 initialization
+  BasicMatrix := NewBaseIntfMap;
 
 finalization
-  FreeAndNil(FBoxBlurMatrix);
-  FreeAndNil(FGaussianBlurMatrix);
-  FreeAndNil(FIdentityMatrix);
-  FreeAndNil(FSharpenMatrix);
-  FreeAndNil(FEdgeDetectionMatrix);
-  FreeAndNil(FUnSharpenMatrix);
+  BasicMatrix.Clear;
+  BasicMatrix := nil;
 end.
