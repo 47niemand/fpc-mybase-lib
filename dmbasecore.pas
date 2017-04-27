@@ -2,14 +2,19 @@
   This source is only used to compile and install the package.
  }
 
-unit DmBasePackage;
+unit DmBaseCore;
 
 interface
 
 uses
-  uBaseAppUtils, uBaseConsts, uBaseThreadPool, uBaseTypes, utimers, 
-  uVariantUtils;
+  uCoreCompareDistance, LazarusPackageIntf;
 
 implementation
 
+procedure Register;
+begin
+end;
+
+initialization
+  RegisterPackage('DmBaseCore', @Register);
 end.

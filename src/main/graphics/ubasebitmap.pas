@@ -168,9 +168,6 @@ type
     property LayersCount: integer read GetLayersCount write SetLayersCount;
   end;
 
-
-
-
 implementation
 
 uses Math;

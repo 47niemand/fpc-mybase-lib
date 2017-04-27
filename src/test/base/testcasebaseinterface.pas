@@ -16,11 +16,12 @@ type
     procedure TestBaseInterface;
     procedure TestBaseWeakRefs;
     procedure TestRefsLeaks;
+    //procedure TestCompareTest;
   end;
 
 implementation
 
-uses uBaseInterface;
+uses Math, uBaseInterface;
 
 procedure TTestCaseBaseInterface.TestBaseInterface;
 var
@@ -184,6 +185,7 @@ begin
   AssertEquals('should not be any weakRef', 0, GetWeakRefCounter);
   AssertEquals('should not be any WeaklyObjects', 0, GetWeaklyInterfacedObjectCounter);
 end;
+
 
 initialization
 

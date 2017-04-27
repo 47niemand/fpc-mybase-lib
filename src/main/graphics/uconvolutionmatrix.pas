@@ -262,7 +262,7 @@ end;
 procedure TConvolutionMatrix.SetCell(Row, Col: integer; AValue: integer);
 begin
   if (Row < 0) or (Row >= Rows) or (Row < 0) or (Row >= Cols) then
-    raise EBoundsCheckError.Create('index out of range');
+    raise EBoundsCheckError.Create('index out of bounds');
   if FMatrix[Row][Col] = AValue then
     exit;
   OnPropertyChangeing;

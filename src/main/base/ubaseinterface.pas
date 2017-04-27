@@ -54,8 +54,6 @@ type
     function Version: integer;
   end;
 
-
-
   { IWeakRef }
 
   IWeakRef = interface
@@ -95,6 +93,8 @@ type
     procedure Update(const Subject: IUnknown; const Operation: TBaseObservedOperation;
       const Data: IUnknown);
   end;
+
+  { IBaseSubject }
 
   IBaseSubject = interface
     ['{4EAC7887-49AD-411C-90FF-102446F19E84}']

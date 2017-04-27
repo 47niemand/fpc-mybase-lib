@@ -107,7 +107,7 @@ var
   L: TList;
   C: integer;
 begin
-  //TODO: possible dead lock if thread dont finish it wokr
+  //TODO: possible dead lock if thread didnt finish it wokr
   repeat
     L := FThreadPool.LockList;
     C := L.Count;
