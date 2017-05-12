@@ -84,6 +84,13 @@ type
     function Clone: IInterface;
   end;
 
+  { IBaseComparable }
+
+  IBaseComparable = interface
+    ['{773C771C-F7B6-4508-8751-C275DF79CE2C}']
+    function CompareTo(I: IUnknown): integer;
+  end;
+
   { IBaseObserver }
 
   TBaseObservedOperation = (booAddItem, booChange, booDeleteItem, booCustom, booFree);

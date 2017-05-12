@@ -11,12 +11,10 @@ type
 
   TBaseListOperation = (bloAddItem, bloChange, bloDeleteItem, bloCustom, bloFree);
 
-
   TLeftComparison<T> = function(const Left: T; var Value): integer;
 
   { TListHelper this generic class provide some static method for searching
     in lists  }
-
   TListHelper<T> = class
   public
     class function BinarySearch(const Instance: TList; var Value;
@@ -34,8 +32,23 @@ type
       Comparison: TLeftComparison<T>; Index, Count: integer): integer; overload;
   end;
 
+function DefaultComparisonFunction(const Left; var Value): integer;
+
 
 implementation
+
+
+function DefaultComparisonFunction(const Left; var Value): integer;
+begin
+  //  Result := pointer(Left) - pointer(Value);
+  if pointer(Left) = pointer(Value) then
+    Result := 0
+  else
+  if pointer(Left) > pointer(Value) then
+    Result := 1
+  else
+    Result := -1;
+end;
 
 { TListHelper<T> }
 

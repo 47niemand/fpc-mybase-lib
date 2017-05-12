@@ -20,8 +20,10 @@ type
   private
   published
     procedure TestComparasion;
+    procedure TestDefaultCompare;
     procedure TestListHelper;
     procedure TestLists;
+    procedure TestListIterator;
     procedure TestSets;
     procedure TestLeak;
   end;
@@ -81,6 +83,12 @@ type
 implementation
 
 uses Math;
+
+function NewTestItem(const Value: Integer): ITestIntf;
+begin
+   result := TTestClass.create(Value);
+end;
+
 
 // comparsion function
 function LeftTestComparison(const Left: ITestIntf; var Value): integer;
@@ -171,6 +179,28 @@ begin
   AssertEquals(True, R > 0);
 end;
 
+procedure TTestCaseForListsAndSets.TestDefaultCompare;
+var
+  A, B, C: ITestIntf;
+begin
+  A := TTestClass.Create(1);
+  B := TTestClass.Create(2);
+  C := nil;
+  writeln(format('A = %p (%p)', [pointer(A), @A]));
+  writeln(format('B = %p (%p)', [pointer(B), @B]));
+  writeln(format('C = %p (%p)', [pointer(C), @C]));
+  Writeln('A, B ? ', DefaultComparisonFunction(A, B));
+  Writeln('A, C ? ', DefaultComparisonFunction(A, C));
+  Writeln('A, A ? ', DefaultComparisonFunction(A, A));
+
+  AssertTrue('', DefaultComparisonFunction(A, B) <> 0);
+  AssertTrue('', DefaultComparisonFunction(B, A) <> 0);
+  AssertTrue('', DefaultComparisonFunction(B, C) <> 0);
+  AssertTrue('', DefaultComparisonFunction(A, A) = 0);
+  AssertTrue('', DefaultComparisonFunction(B, B) = 0);
+  AssertTrue('', DefaultComparisonFunction(C, C) = 0);
+end;
+
 procedure TTestCaseForListsAndSets.TestListHelper;
 var
   L: TList;
@@ -255,6 +285,22 @@ begin
   AssertEquals(False, B);
 
   //TODO: Iterators
+end;
+
+procedure TTestCaseForListsAndSets.TestListIterator;
+var
+  T: ITestList;
+begin
+  T:=TTestList.Create;
+  T.Add(NewTestItem(0));
+  T.Add(NewTestItem(1));
+  writeln('1 = ',T.Count);
+  T.Append(T);
+  writeln('2 = ',T.Count);
+  T.Append(T);
+  writeln('3 = ',T.Count);
+
+
 end;
 
 procedure TTestCaseForListsAndSets.TestSets;

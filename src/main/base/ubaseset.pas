@@ -60,7 +60,7 @@ type
     procedure OnUpdateInternal(const {%H-}L: TList; const {%H-}Item: T;
       const {%H-}AOperation: TBaseListOperation); virtual;
     function GetComparisonFunction: TLeftComparison<T>; virtual;
-      abstract; {Warning successors sbould implement this}
+      abstract; {Warning successors have to implement this method}
   public
     function GetCount: integer;
     function Add(const Item: T): boolean;
@@ -71,7 +71,7 @@ type
     function GetEnumerator: IEnumerator<T>; virtual;
     function GetObject: TObject;
     procedure Clear;
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
   end;
 
@@ -223,6 +223,8 @@ begin
   inherited Create;
   FList := TThreadList.Create;
   FLeftComparison := GetComparisonFunction;
+  if not Assigned(FLeftComparison) then
+    FLeftComparison := @DefaultComparisonFunction;
 end;
 
 destructor TBaseSet<T>.Destroy;

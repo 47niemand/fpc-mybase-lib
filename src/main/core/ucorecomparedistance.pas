@@ -5,7 +5,7 @@ interface
 type
   TVarMatix = array of array of integer;
 
-function LevenshteinCore(const S, T: string; var D: TVarMatix): double;
+procedure LevenshteinCore(const S, T: string; var D: TVarMatix);
 function LevenshteinScore(const S, T: string): double;
 function LevenshteinDistance(const S, T: string): integer;
 
@@ -16,6 +16,8 @@ implementation
 uses Math;
 
 function CreateVarMatix(const rows, cols: integer): TVarMatix;
+var
+  I, J: Integer;
 begin
   SetLength(Result, rows);
   for I := 0 to rows - 1 do
@@ -50,7 +52,7 @@ begin
     Result := 1.0 / Result;
 end;
 
-function LevenshteinCore(const S, T: string; var D: TVarMatix): double;
+procedure LevenshteinCore(const S, T: string; var D: TVarMatix);
 var
   I, J, M, N: integer;
   score: array[1..3] of integer;
@@ -84,10 +86,6 @@ begin
       D[I, J] := min(min(score[1], score[2]), score[3]);
     end;
 
-  if (M + N - D[M, N]) = 0 then
-    Result := 0.0
-  else
-    Result := 1.0 - D[M, N] / (M + N - D[M, N]);
 end;
 
 function LevenshteinScore(const S, T: string): double;

@@ -41,6 +41,8 @@ type
     }
   IBaseList<T> = interface
     function Add(const Item: T): integer;
+    function Remove(const Index: integer): T;
+    procedure Append(const L: IBaseList<T>);
     function Find(const Item: T; out Index: integer): boolean;
     function FindEx(const StartIdx: integer; const Item: T; out Index: integer): boolean;
     function Exist(const AItem: T): boolean;
@@ -71,9 +73,11 @@ type
     function GetComparisonFunction: TLeftComparison<T>; virtual;
       abstract; {Warning successors should implement this}
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
     function Add(const AItem: T): integer;
+    function Remove(const AIndex: integer): T;
+    procedure Append(const S: IBaseList<T>);
     function Exist(const AItem: T): boolean;
     function Find(const AItem: T; out AIndex: integer): boolean;
     function FindEx(const AStartIdx: integer; const AItem: T;
@@ -110,6 +114,7 @@ type
 implementation
 
 uses uBaseConsts;
+
 
 { TBaseList }
 
@@ -192,6 +197,45 @@ begin
   Result := Get(0);
 end;
 
+procedure TBaseList<T>.Append(const S: IBaseList<T>);
+var
+  L: TList;
+  M, N, I: integer;
+  V: T;
+begin
+  L := FList.Locklist;
+  try
+    N := L.Count;
+    M := S.Count;
+    L.Count := L.Count + M;
+    for I := 0 to M - 1 do
+    begin
+      V := S.Get(I);
+      OnUpdateInternal(L, I + N, bloAddItem, V);
+      T(L.List^[I + N]) := V;
+      V := nil;
+    end;
+  finally
+    FList.UnlockList;
+  end;
+end;
+
+function TBaseList<T>.Remove(const AIndex: integer): T;
+var
+  L: TList;
+begin
+  L := FList.Locklist;
+  try
+    if (AIndex < 0) or (AIndex >= L.Count) then
+      raise EBaseListIdxOutOfBounds.Create(AIndex);
+    OnUpdateInternal(L, AIndex, bloDeleteItem, nil);
+    Result := T(L.List^[AIndex]);
+    L.Delete(AIndex);
+  finally
+    FList.UnlockList;
+  end;
+end;
+
 function TBaseList<T>.Add(const AItem: T): integer;
 var
   L: TList;
@@ -207,19 +251,8 @@ begin
 end;
 
 procedure TBaseList<T>.Delete(const AIndex: integer);
-var
-  L: TList;
 begin
-  L := FList.Locklist;
-  try
-    if (AIndex < 0) or (AIndex >= L.Count) then
-      raise EBaseListIdxOutOfBounds.Create(AIndex);
-    OnUpdateInternal(L, AIndex, bloDeleteItem, nil);
-    T(L.List^[AIndex]) := nil;
-    L.Delete(AIndex);
-  finally
-    FList.UnlockList;
-  end;
+  Remove(AIndex);
 end;
 
 destructor TBaseList<T>.Destroy;
@@ -234,6 +267,8 @@ begin
   inherited Create;
   FList := TThreadList.Create;
   FLeftComparison := GetComparisonFunction;
+  if not Assigned(FLeftComparison) then
+    FLeftComparison := @DefaultComparisonFunction;
 end;
 
 procedure TBaseList<T>.Exchange(const AIndex1, AIndex2: integer);

@@ -17,7 +17,7 @@ type
 
 implementation
 
-uses uCoreCompareDistance;
+uses Math, uCoreCompareDistance;
 
 { TTestCaseCore }
 
@@ -62,7 +62,11 @@ procedure TTestCaseCore.TestTest;
     LS := LevenshteinScore(a, b);
     LD := LevenshteinDistance(a, b);
     Ta := Tanimoto(A, B);
-    LC := LevenshteinCore(a, b, D);
+    LevenshteinCore(a, b, d);
+    if LD <> 0 then
+      LC := Min(Length(a), Length(b) - LD) / LD
+    else
+      LC := 1.0;
     LevenshteinRestore(A, B, D, S, T);
 
     Writeln(format('"%S"?"%S" = '#9' LS=%d%%(%d%%) '#9' LD=%d '#9' T=%d%%',
@@ -105,8 +109,6 @@ initialization
 
   RegisterTest(TTestCaseCore);
 end.
-
-
 
 
 
